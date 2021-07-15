@@ -10,6 +10,7 @@ html {
 }
 
 body {
+  height: 100%;
   margin: 0;
   padding: 0;
 }
@@ -19,7 +20,10 @@ main {
 }
 
 footer {
-  text-align: center;
+  bottom: 0;
+  width: 100%;
+  position: fixed;
+  text-align: left;
 }
 
 a {
@@ -42,6 +46,7 @@ h1 {
 
 #createQuizForm {
   padding-top: 5%;
+  padding-bottom: 5%;
 }
 
 .menuContainer {
@@ -92,16 +97,17 @@ textarea {
   height: 75px;
 }
 
-#addQuestionButton {
+#addQuestionButton,
+#createQuiz,
+#removeQuestionButton {
   font-family: Montserrat;
-  width: 25%;
+  width: 7%;
   height: 50px;
   border: 2px solid black;
   border-color: #7d2906;
-  border-radius: 5px 5px 5px 5px;
+  border-radius: 5px 5px 0px 0px;
+  border-bottom: none;
   color: white;
-  margin-top: 5%;
-  margin-bottom: 5%;
   cursor: pointer;
 
   background-color: #00000020;
@@ -110,7 +116,9 @@ textarea {
   transition: background-color 500ms;
 }
 
-#addQuestionButton:hover {
+#addQuestionButton:hover,
+#createQuiz:hover,
+#removeQuestionButton:hover {
   background-color: #7d290650;
   -webkit-transition: background-color 500ms;
   -ms-transition: background-color 500ms;
