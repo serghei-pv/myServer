@@ -6,11 +6,20 @@ html {
   color: white;
   font-size: 20px;
   font-family: Montserrat;
+  background-attachment: fixed;
 }
 
 body {
   margin: 0;
   padding: 0;
+}
+
+main {
+  text-align: center;
+}
+
+footer {
+  text-align: center;
 }
 
 a {
@@ -26,28 +35,84 @@ li {
   display: inline-block;
 }
 
+h1 {
+  font-size: 30px;
+  padding-bottom: 3%;
+}
+
+#createQuizForm {
+  padding-top: 5%;
+}
+
 .menuContainer {
+  position: fixed;
+  width: 100%;
   display: flex;
-  margin: 0;
-  padding: 0;
+  padding-top: 1%;
 }
 
 .menuContainerLeft {
   order: 1;
   width: 50%;
   text-align: left;
-}
-
-.menuContainerLeft li {
-  padding-left: 10%;
+  padding-left: 0%;
 }
 
 .menuContainerRight {
   order: 2;
   width: 50%;
   text-align: right;
+  padding-left: 0%;
+}
+
+.menuContainerLeft li {
+  padding-left: 7%;
 }
 
 .menuContainerRight li {
-  padding-right: 10%;
+  padding-right: 7%;
+}
+
+textarea {
+  font-family: Montserrat;
+  width: 50%;
+  resize: none;
+  background: #00000020;
+  border-color: #7d2906;
+  border-radius: 5px 5px 5px 5px;
+  color: white;
+  font-size: 15px;
+}
+
+.questionArea {
+  height: 125px;
+}
+
+.answerArea {
+  height: 75px;
+}
+
+#addQuestionButton {
+  font-family: Montserrat;
+  width: 25%;
+  height: 50px;
+  border: 2px solid black;
+  border-color: #7d2906;
+  border-radius: 5px 5px 5px 5px;
+  color: white;
+  margin-top: 5%;
+  margin-bottom: 5%;
+  cursor: pointer;
+
+  background-color: #00000020;
+  -webkit-transition: background-color 500ms;
+  -ms-transition: background-color 500ms;
+  transition: background-color 500ms;
+}
+
+#addQuestionButton:hover {
+  background-color: #7d290650;
+  -webkit-transition: background-color 500ms;
+  -ms-transition: background-color 500ms;
+  transition: background-color 500ms;
 }
