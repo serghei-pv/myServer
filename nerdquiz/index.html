@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nerdquiz - Home</title>
     <link rel="stylesheet" href="./css/style.css" />
-    <script src="../js/script.js" defer></script>
+    <script src="./js/script.js" defer></script>
+    <script>
+      var exports = {};
+    </script>
   </head>
 
   <body>
@@ -15,14 +18,30 @@
         <li><a href="index.html">Home</a></li>
         <li><a href="https://github.com/serghei-pv/Web-Development/tree/main/nerdquiz">Github</a></li>
       </ul>
-      <ul class="menuContainerRight">
-        <li>Join</li>
+      <ul class="menuContainerRight" id="indexMenuRight">
+        <li><a href="./pages/quiz.html">Join</a></li>
         <li><a href="./pages/create.html">Create</a></li>
         <li><a href="./pages/profile.html">Profile</a></li>
       </ul>
     </header>
 
-    <main></main>
+    <main id="indexMain">
+      <form class="lr" id="lrRegister">
+        <div id="registerError"></div>
+
+        <div class="lrInputDiv">
+          <p>Username</p>
+          <input class="lrInput" type="text" name="username" />
+          <p>Password</p>
+          <input class="lrInput" type="password" name="password" />
+        </div>
+
+        <div class="lrButtonDiv">
+          <button class="lrButton" type="button" id="registerButton">Create account</button>
+          <button class="lrButton" type="button" id="loginButton">Login</button>
+        </div>
+      </form>
+    </main>
 
     <footer></footer>
   </body>

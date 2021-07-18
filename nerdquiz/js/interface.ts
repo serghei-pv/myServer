@@ -5,3 +5,10 @@ export interface User {
   username: string;
   password: string;
 }
+
+export interface Quiz {
+  _id: ObjectId;
+  question: string[];
+  answer: string[];
+  user: string;
+}

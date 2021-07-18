@@ -118,8 +118,59 @@ textarea {
 
 #addQuestionButton:hover,
 #createQuiz:hover,
-#removeQuestionButton:hover {
+#removeQuestionButton:hover,
+.lrButton:hover {
   background-color: #7d290650;
+  -webkit-transition: background-color 500ms;
+  -ms-transition: background-color 500ms;
+  transition: background-color 500ms;
+}
+
+.lr,
+.quizIDForm {
+  margin: auto;
+  padding-top: 10%;
+  width: 350px;
+}
+
+.lrPassive {
+  padding-top: -100%;
+}
+
+.lrInputDiv {
+  text-align: left;
+}
+
+.lrInput,
+#quizID {
+  font-family: Montserrat;
+  width: 100%;
+  height: 30px;
+  border: 2px solid black;
+  background: #00000020;
+  border-color: #7d2906;
+  border-radius: 5px 5px 5px 5px;
+  color: white;
+  font-size: 15px;
+}
+
+.lrButtonDiv {
+  padding-top: 10%;
+}
+
+.lrButton,
+#submitQuizID {
+  font-family: Montserrat;
+  width: 40%;
+  height: 50px;
+  margin-top: 5%;
+  border: 2px solid black;
+  border-color: #7d2906;
+  border-radius: 5px 5px 5px 5px;
+  color: white;
+  cursor: pointer;
+
+  background-color: #00000020;
   -webkit-transition: background-color 500ms;
   -ms-transition: background-color 500ms;
   transition: background-color 500ms;
