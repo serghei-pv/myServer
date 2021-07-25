@@ -4,6 +4,7 @@ exports.nerdquiz = void 0;
 const Http = require("http");
 const Url = require("url");
 const Mongo = require("mongodb");
+const Websocket = require("ws");
 var nerdquiz;
 (function (nerdquiz) {
     //let dbURL: string = "mongodb://localhost:27017";
@@ -13,27 +14,63 @@ var nerdquiz;
         port = 8100;
     let userbase;
     let quiz;
+    let participants;
     let allUser;
     let allQuizzes;
+    let allParticipants;
+    console.log("Starting server");
+    let server = Http.createServer();
+    server.addListener("listening", handleListen);
+    server.addListener("request", handleRequest);
+    server.listen(port);
     connectToDb(dbURL);
-    connectToServer(port);
-    function connectToServer(_port) {
-        console.log("Starting server");
-        let server = Http.createServer();
-        server.addListener("listening", handleListen);
-        server.addListener("request", handleRequest);
-        server.listen(port);
-    }
+    let wss = new Websocket.Server({ server });
     async function connectToDb(_url) {
         let options = { useNewUrlParser: true, useUnifiedTopology: true };
         let mongoClient = new Mongo.MongoClient(_url, options);
         await mongoClient.connect();
         userbase = mongoClient.db("nerdquiz").collection("user");
         quiz = mongoClient.db("nerdquiz").collection("quizzes");
+        participants = mongoClient.db("nerdquiz").collection("participants");
     }
     function handleListen() {
         console.log("Looking for Action");
     }
+    wss.on("connection", async (socket) => {
+        console.log("User Connected");
+        let particpantsCounter = 0;
+        let participantsCursor = participants.find();
+        allParticipants = await participantsCursor.toArray();
+        socket.on("message", async (message) => {
+            if (allParticipants.length > 0) {
+                for (let i = allParticipants.length; i < allParticipants.length; i++) {
+                    if (allParticipants[i].username != message) {
+                        particpantsCounter++;
+                    }
+                }
+                if (particpantsCounter == allParticipants.length) {
+                    participants.insertOne({ number: particpantsCounter + 1, username: message });
+                    console.log(message);
+                    particpantsCounter = 1;
+                }
+            }
+            else {
+                participants.insertOne({ number: particpantsCounter + 1, username: message, points: 0, answer: "" });
+                console.log(message);
+                particpantsCounter++;
+            }
+        });
+        socket.on("close", () => {
+            console.log("User Disconnected");
+        });
+    });
+    setInterval(() => {
+        wss.clients.forEach(async (wss) => {
+            let participantsCursor = participants.find();
+            allParticipants = await participantsCursor.toArray();
+            wss.send(JSON.stringify(allParticipants));
+        });
+    }, 1000);
     async function handleRequest(_request, _response) {
         console.log("Action recieved");
         _response.setHeader("Access-Control-Allow-Origin", "*");

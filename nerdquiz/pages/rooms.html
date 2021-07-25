@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nerdquiz - Create</title>
+    <title>Nerdquiz - Home</title>
     <link rel="stylesheet" href="../css/style.css" />
     <script src="../js/script.js" defer></script>
   </head>
@@ -23,17 +23,14 @@
     </header>
 
     <main>
-      <form id="createQuizForm">
-        <h1>Question 1</h1>
-        <textarea class="questionArea" name="question" placeholder="Question:"></textarea>
-        <textarea class="answerArea" name="answer" placeholder="Answer:"></textarea>
+      <form class="quizIDForm">
+        <input type="text" name="quizID" id="quizID" placeholder="Enter Quiz ID" />
+        <button type="button" id="submitQuizID">Join Quiz</button>
       </form>
+
+      <ul id="quizList"></ul>
     </main>
 
-    <footer>
-      <button id="createQuiz">Create</button>
-      <button id="removeQuestionButton">Undo</button>
-      <button id="addQuestionButton">Add</button>
-    </footer>
+    <footer></footer>
   </body>
 </html>

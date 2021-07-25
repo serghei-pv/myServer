@@ -1,8 +1,10 @@
 import * as Http from "http";
 import * as Url from "url";
 import * as Mongo from "mongodb";
+import * as Websocket from "ws";
 import { User } from "../js/interface";
 import { Quiz } from "../js/interface";
+import { Participant } from "../js/interface";
 
 export namespace nerdquiz {
   //let dbURL: string = "mongodb://localhost:27017";
@@ -12,19 +14,19 @@ export namespace nerdquiz {
   if (!port) port = 8100;
   let userbase: Mongo.Collection;
   let quiz: Mongo.Collection;
+  let participants: Mongo.Collection;
   let allUser: User[];
   let allQuizzes: Quiz[];
+  let allParticipants: Participant[];
+
+  console.log("Starting server");
+  let server: Http.Server = Http.createServer();
+  server.addListener("listening", handleListen);
+  server.addListener("request", handleRequest);
+  server.listen(port);
 
   connectToDb(dbURL);
-  connectToServer(port);
-
-  function connectToServer(_port: number): void {
-    console.log("Starting server");
-    let server: Http.Server = Http.createServer();
-    server.addListener("listening", handleListen);
-    server.addListener("request", handleRequest);
-    server.listen(port);
-  }
+  let wss = new Websocket.Server({ server });
 
   async function connectToDb(_url: string): Promise<void> {
     let options: Mongo.MongoClientOptions = { useNewUrlParser: true, useUnifiedTopology: true };
@@ -34,11 +36,51 @@ export namespace nerdquiz {
 
     userbase = mongoClient.db("nerdquiz").collection("user");
     quiz = mongoClient.db("nerdquiz").collection("quizzes");
+    participants = mongoClient.db("nerdquiz").collection("participants");
   }
 
   function handleListen(): void {
     console.log("Looking for Action");
   }
+
+  wss.on("connection", async (socket) => {
+    console.log("User Connected");
+
+    let particpantsCounter: number = 0;
+    let participantsCursor: Mongo.Cursor = participants.find();
+    allParticipants = await participantsCursor.toArray();
+
+    socket.on("message", async (message) => {
+      if (allParticipants.length > 0) {
+        for (let i: number = allParticipants.length; i < allParticipants.length; i++) {
+          if (allParticipants[i].username != message) {
+            particpantsCounter++;
+          }
+        }
+        if (particpantsCounter == allParticipants.length) {
+          participants.insertOne({ number: particpantsCounter + 1, username: message });
+          console.log(message);
+          particpantsCounter = 1;
+        }
+      } else {
+        participants.insertOne({ number: particpantsCounter + 1, username: message, points: 0, answer: "" });
+        console.log(message);
+        particpantsCounter++;
+      }
+    });
+
+    socket.on("close", () => {
+      console.log("User Disconnected");
+    });
+  });
+
+  setInterval(() => {
+    wss.clients.forEach(async (wss) => {
+      let participantsCursor: Mongo.Cursor = participants.find();
+      allParticipants = await participantsCursor.toArray();
+      wss.send(JSON.stringify(allParticipants));
+    });
+  }, 1000);
 
   async function handleRequest(_request: Http.IncomingMessage, _response: Http.ServerResponse): Promise<void> {
     console.log("Action recieved");

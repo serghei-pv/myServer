@@ -36,6 +36,11 @@ a {
 }
 
 li {
+  list-style: none;
+}
+
+.menuContainerLeft li,
+.menuContainerRight li {
   display: inline-block;
 }
 
@@ -99,7 +104,8 @@ textarea {
 
 #addQuestionButton,
 #createQuiz,
-#removeQuestionButton {
+#removeQuestionButton,
+.submitButton {
   font-family: Montserrat;
   width: 7%;
   height: 50px;
@@ -174,4 +180,91 @@ textarea {
   -webkit-transition: background-color 500ms;
   -ms-transition: background-color 500ms;
   transition: background-color 500ms;
+}
+
+.quizSlot {
+  cursor: pointer;
+  width: 21%;
+  margin-top: 1%;
+}
+
+#quizMain {
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
+  padding-top: 5%;
+  width: 100%;
+}
+
+#QAArea {
+  order: 1;
+  padding: 5%;
+}
+
+#questionDisplay {
+  font-size: 20px;
+}
+
+#answerDisplay {
+  padding-top: 15px;
+  font-size: 15px;
+}
+
+#questionDisplay,
+#answerDisplay {
+  width: 100%;
+  word-wrap: break-word; /* IE 5.5-7 */
+  white-space: -moz-pre-wrap; /* Firefox 1.0-2.0 */
+  white-space: pre-wrap; /* current browsers */
+}
+
+#QAArea {
+  width: 100%;
+}
+
+#participantsArea {
+  order: 2;
+  text-align: right;
+  padding: 5%;
+  width: 100%;
+}
+
+#quizFooter {
+  display: flex;
+  justify-content: space-between;
+}
+
+#previousQuestion {
+  order: 1;
+  font-size: 20px;
+  margin-left: 2%;
+  visibility: hidden;
+}
+
+#questionNumberDisplay {
+  order: 2;
+  font-size: 60px;
+  text-align: center;
+}
+
+#nextQuestion {
+  order: 3;
+  font-size: 20px;
+  margin-right: 2%;
+  visibility: hidden;
+}
+
+.participantsTextarea {
+  margin-top: 100px;
+  width: 769px;
+  height: 100px;
+}
+
+.submitButton {
+  margin-top: 50px;
+  margin-left: 193px;
+  margin-right: 193px;
+  width: 386px;
+  border-bottom: 2px solid #7d2906;
+  border-radius: 5px 5px 5px 5px;
 }

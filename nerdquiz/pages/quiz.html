@@ -7,9 +7,6 @@
     <title>Nerdquiz - Home</title>
     <link rel="stylesheet" href="../css/style.css" />
     <script src="../js/script.js" defer></script>
-    <script>
-      var exports = {};
-    </script>
   </head>
 
   <body>
@@ -18,22 +15,20 @@
         <li><a href="../index.html">Home</a></li>
         <li><a href="https://github.com/serghei-pv/Web-Development/tree/main/nerdquiz">Github</a></li>
       </ul>
-      <ul class="menuContainerRight" id="indexMenuRight">
-        <li><a href="./quiz.html">Join</a></li>
-        <li><a href="./create.html">Create</a></li>
-        <li><a href="./profile.html">Profile</a></li>
-      </ul>
     </header>
 
-    <main>
-      <form class="quizIDForm">
-        <input type="text" name="quizID" id="quizID" placeholder="Enter Quiz ID" />
-        <button type="button" id="submitQuizID">Join Quiz</button>
-      </form>
-
-      <ul id="quizList"></ul>
+    <main id="quizMain">
+      <div id="QAArea">
+        <p id="questionDisplay"></p>
+        <p id="answerDisplay"></p>
+      </div>
+      <tablde id="participantsArea"></tablde>
     </main>
 
-    <footer></footer>
+    <footer id="quizFooter">
+      <button id="previousQuestion">Previous Question</button>
+      <div id="questionNumberDisplay"></div>
+      <button id="nextQuestion">Next Question</button>
+    </footer>
   </body>
 </html>

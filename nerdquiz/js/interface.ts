@@ -12,3 +12,11 @@ export interface Quiz {
   answer: string[];
   user: string;
 }
+
+export interface Participant {
+  _id: ObjectId;
+  number: number;
+  username: string;
+  points: number;
+  answer: string;
+}
