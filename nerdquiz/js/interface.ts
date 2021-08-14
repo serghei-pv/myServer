@@ -14,9 +14,7 @@ export interface Quiz {
 }
 
 export interface Participant {
-  _id: ObjectId;
-  number: number;
-  username: string;
+  username: string | string[];
   points: number;
   answer: string;
 }

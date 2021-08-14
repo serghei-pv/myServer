@@ -17,7 +17,7 @@ namespace nerdquiz {
   let questionDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("questionDisplay");
   let answerDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("answerDisplay");
   let questionNumberDisplay: HTMLDivElement = <HTMLDivElement>document.getElementById("questionNumberDisplay");
-  let participantsArea: HTMLTableElement = <HTMLTableElement>document.getElementById("participantsArea");
+  let participantsArea: HTMLDivElement = <HTMLDivElement>document.getElementById("participantsArea");
 
   let createQuestionsCounter: number = 2;
   let questionCounter: number = 0;
@@ -28,6 +28,7 @@ namespace nerdquiz {
   let registerVariable: string = "register";
   let createQuizVariable: string = "create";
   let quizListVariable: string = "quizList";
+  let participantVariable: string = "participant";
 
   if (sessionStorage.getItem("login") != "true") {
     for (let i: number = indexMenuRight.childNodes.length; i > 0; i--) {
@@ -59,27 +60,69 @@ namespace nerdquiz {
   if (currentPage == "quiz.html") {
     let quiz = JSON.parse(localStorage.getItem("quiz"));
     if (sessionStorage.getItem("user") == quiz.user) {
-      startQuiz();
+      hostQuiz();
+
+      ws.addEventListener("message", ({ data }) => {
+        for (let i: number = 0; i < JSON.parse(data).length; i++) {
+          let particpantTable: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+          let particpantTable2: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantSubPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantAddPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantAnswer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+
+          let subParticipant: any = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points - 1 };
+          let addParticipant: any = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points + 1 };
+
+          if (JSON.parse(data).length > participantsArea.childNodes.length && i == participantsArea.childNodes.length) {
+            participantName.id = "name" + i;
+            participantPoints.id = "points" + i;
+            participantAnswer.id = "answer" + i;
+            participantSubPoint.id = "subPoint" + i;
+            participantAddPoint.id = "addPoint" + i;
+
+            particpantTable.className = "particpantTable";
+            particpantTable2.className = "particpantTable2";
+
+            participantPoints.className = "participantPoints";
+            participantName.className = "participantName";
+            participantSubPoint.className = "participantSubPoint";
+            participantAddPoint.className = "participantAddPoint";
+            participantAnswer.className = "participantAnswer";
+
+            participantsArea.appendChild(particpantTable);
+            particpantTable.appendChild(particpantTable2);
+
+            particpantTable2.appendChild(participantName);
+            particpantTable2.appendChild(participantSubPoint);
+            particpantTable2.appendChild(participantAddPoint);
+            particpantTable2.appendChild(participantPoints);
+            particpantTable.appendChild(participantAnswer);
+          }
+          document.getElementById("subPoint" + i).addEventListener("click", subPoints);
+          document.getElementById("addPoint" + i).addEventListener("click", addPoints);
+          function subPoints(): void {
+            if (JSON.parse(data)[i].points > 0) {
+              ws.send(JSON.stringify(subParticipant));
+            }
+          }
+          function addPoints(): void {
+            ws.send(JSON.stringify(addParticipant));
+          }
+
+          participantSubPoint.innerHTML = "-";
+          participantAddPoint.innerHTML = "+";
+          document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
+          document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
+          document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
+        }
+      });
     }
     if (sessionStorage.getItem("user") != quiz.user) {
       participateQuiz();
+      processParticipant();
     }
-  }
-
-  function preocessConnection(): void {
-    processRequest("ws://localhost:8100/", connectionVariable);
-  }
-  function processRegistration(): void {
-    processRequest(host, registerVariable);
-  }
-  function processLogin(): void {
-    processRequest(host, loginVariable);
-  }
-  function processQuizCreation(): void {
-    processRequest(host, createQuizVariable);
-  }
-  function processQuizList(): void {
-    processRequest(host, quizListVariable);
   }
 
   function addQuestion(): void {
@@ -112,7 +155,7 @@ namespace nerdquiz {
     }
   }
 
-  function startQuiz(): void {
+  function hostQuiz(): void {
     let quiz = JSON.parse(localStorage.getItem("quiz"));
     document.getElementById("previousQuestion").style.visibility = "visible";
     document.getElementById("nextQuestion").style.visibility = "visible";
@@ -136,16 +179,31 @@ namespace nerdquiz {
     submitButton.innerHTML = "Answer";
   }
 
+  function preocessConnection(): void {
+    processRequest("ws://localhost:8100/", connectionVariable);
+  }
+  function processRegistration(): void {
+    processRequest(host, registerVariable);
+  }
+  function processLogin(): void {
+    processRequest(host, loginVariable);
+  }
+  function processQuizCreation(): void {
+    processRequest(host, createQuizVariable);
+  }
+  function processQuizList(): void {
+    processRequest(host, quizListVariable);
+  }
+  function processParticipant(): void {
+    processRequest(host, participantVariable);
+  }
+
   async function processRequest(_url: RequestInfo, _pathname: string): Promise<void> {
     let formData: FormData = new FormData(document.forms[0]);
     let query: URLSearchParams = new URLSearchParams(<any>formData);
     let response: Response;
     let textData: string;
     let username: string = query.get("username");
-
-    if (_pathname == connectionVariable) {
-      ws.send(sessionStorage.getItem("user"));
-    }
 
     if (_pathname == registerVariable) {
       _url += registerVariable + "?" + query.toString();
@@ -193,82 +251,98 @@ namespace nerdquiz {
 
         function loadQuiz(): void {
           window.location.href = "../pages/quiz.html";
-          localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
         }
       }
+    }
+
+    if (_pathname == participantVariable) {
+      _url += participantVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
+      response = await fetch(_url);
     }
   }
 
-  let number: number = 0;
-  let username: string = "";
-  let points: number = 0;
-  let answer: string = "";
+  // if (currentPage == "quiz.html") {
+  //   ws.addEventListener("connection", connection);
+  // }
 
-  ws.addEventListener("message", ({ data }) => {
-    //console.log(JSON.parse(data).length);
-    let i: number;
+  // ws.addEventListener("message", ({ data }) => {
+  //   console.log(data);
+  // });
 
-    if (currentPage == "quiz.html") {
-      for (i = 0; i < JSON.parse(data).length; i++) {
-        let particpantTable: HTMLTableRowElement = <HTMLTableRowElement>document.createElement("TR");
-        let particpantTable2: HTMLTableRowElement = <HTMLTableRowElement>document.createElement("TR");
-        let participantNumber: HTMLTableHeaderCellElement = <HTMLTableHeaderCellElement>document.createElement("TH");
-        let participantName: HTMLTableHeaderCellElement = <HTMLTableHeaderCellElement>document.createElement("TH");
-        let participantPoints: HTMLTableHeaderCellElement = <HTMLTableHeaderCellElement>document.createElement("TH");
-        let participantSubPoint: HTMLTableHeaderCellElement = <HTMLTableHeaderCellElement>document.createElement("TH");
-        let participantAddPoint: HTMLTableHeaderCellElement = <HTMLTableHeaderCellElement>document.createElement("TH");
-        let participantAnswer: HTMLTableHeaderCellElement = <HTMLTableHeaderCellElement>document.createElement("TH");
+  // function connection(): void {
+  //   let username: string = '{"username": sessionStorage.getItem("user")}';
+  //   ws.send(username);
+  // }
 
-        if (JSON.parse(data).length > participantsArea.childNodes.length) {
-          participantNumber.id = "number" + i;
-          participantPoints.id = "points" + i;
-          participantName.id = "name" + i;
-          participantAnswer.id = "answer" + i;
+  // let username: string = "";
+  // let points: number = 0;
+  // let answer: string = "";
 
-          participantsArea.appendChild(particpantTable);
-          particpantTable.appendChild(participantNumber);
-          particpantTable.appendChild(participantName);
-          particpantTable.appendChild(participantPoints);
-          particpantTable.appendChild(participantSubPoint);
-          particpantTable.appendChild(participantAddPoint);
-          participantsArea.appendChild(particpantTable2);
-          particpantTable2.appendChild(participantAnswer);
-        }
+  // ws.addEventListener("message", ({ data }) => {
+  //   let i: number;
 
-        if (number != JSON.parse(data)[i].number) {
-          document.getElementById("number" + i).innerHTML = JSON.parse(data)[i].number;
-        }
-        if (username != JSON.parse(data)[i].username) {
-          document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
-        }
-        if (points != JSON.parse(data)[i].points) {
-          console.log(points);
-          document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
-        }
-        if (participantSubPoint.innerHTML != "-") {
-          participantSubPoint.innerHTML = "-";
-        }
-        if (participantAddPoint.innerHTML != "+") {
-          participantAddPoint.innerHTML = "+";
-        }
-        if (answer != JSON.parse(data)[i].answer) {
-          document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
-        }
-        number = JSON.parse(data)[i].number;
-        username = JSON.parse(data)[i].username;
-        points = JSON.parse(data)[i].points;
-        answer = JSON.parse(data)[i].answer;
+  //   if (currentPage == "quiz.html") {
+  //     for (i = 0; i < JSON.parse(data).length; i++) {
+  //       let particpantTable: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+  //       let particpantTable2: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+  //       let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+  //       let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+  //       let participantSubPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+  //       let participantAddPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+  //       let participantAnswer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
 
-        //participantNumber.innerHTML = JSON.stringify(number);
-        //participantName.innerHTML = username;
-        //participantPoints.innerHTML = JSON.stringify(points);
-        //participantSubPoint.innerHTML = "-";
-        //participantAddPoint.innerHTML = "+";
-        //participantAnswer.innerHTML = answer;
-        if (i == JSON.parse(data).length - 1) {
-          i = 0;
-        }
-      }
-    }
-  });
+  //       if (JSON.parse(data).length > participantsArea.childNodes.length) {
+  //         username = JSON.parse(data)[i].username;
+  //         points = JSON.parse(data)[i].points;
+  //         answer = JSON.parse(data)[i].answer;
+
+  //         participantPoints.id = "points" + i;
+  //         participantName.id = "name" + i;
+  //         participantAnswer.id = "answer" + i;
+
+  //         particpantTable.className = "particpantTable";
+  //         particpantTable2.className = "particpantTable2";
+
+  //         participantPoints.className = "participantPoints";
+  //         participantName.className = "participantName";
+  //         participantSubPoint.className = "participantSubPoint";
+  //         participantAddPoint.className = "participantAddPoint";
+  //         participantAnswer.className = "participantAnswer";
+
+  //         participantsArea.appendChild(particpantTable);
+  //         particpantTable.appendChild(particpantTable2);
+
+  //         particpantTable2.appendChild(participantName);
+  //         particpantTable2.appendChild(participantSubPoint);
+  //         particpantTable2.appendChild(participantAddPoint);
+  //         particpantTable2.appendChild(participantPoints);
+  //         particpantTable.appendChild(participantAnswer);
+  //       }
+
+  //       if (participantSubPoint.innerHTML != "-") {
+  //         participantSubPoint.innerHTML = "-";
+  //       }
+  //       if (participantAddPoint.innerHTML != "+") {
+  //         participantAddPoint.innerHTML = "+";
+  //       }
+  //       if (username != JSON.parse(data)[i].username) {
+  //         document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
+  //       }
+  //       if (points != JSON.parse(data)[i].points) {
+  //         document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
+  //       }
+  //       if (answer != JSON.parse(data)[i].answer) {
+  //         document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
+  //       }
+
+  //       username = JSON.parse(data)[i].username;
+  //       points = JSON.parse(data)[i].points;
+  //       answer = JSON.parse(data)[i].answer;
+
+  //       if (i == JSON.parse(data).length - 1) {
+  //         i = 0;
+  //       }
+  //     }
+  //   }
+  // });
 }

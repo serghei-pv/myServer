@@ -5,6 +5,7 @@ const Http = require("http");
 const Url = require("url");
 const Mongo = require("mongodb");
 const Websocket = require("ws");
+let participantsArray = [];
 var nerdquiz;
 (function (nerdquiz) {
     //let dbURL: string = "mongodb://localhost:27017";
@@ -14,10 +15,10 @@ var nerdquiz;
         port = 8100;
     let userbase;
     let quiz;
-    let participants;
+    // let participants: Mongo.Collection;
     let allUser;
     let allQuizzes;
-    let allParticipants;
+    // let allParticipants: Participant[];
     console.log("Starting server");
     let server = Http.createServer();
     server.addListener("listening", handleListen);
@@ -31,34 +32,38 @@ var nerdquiz;
         await mongoClient.connect();
         userbase = mongoClient.db("nerdquiz").collection("user");
         quiz = mongoClient.db("nerdquiz").collection("quizzes");
-        participants = mongoClient.db("nerdquiz").collection("participants");
+        // participants = mongoClient.db("nerdquiz").collection("participants");
     }
     function handleListen() {
         console.log("Looking for Action");
     }
     wss.on("connection", async (socket) => {
         console.log("User Connected");
-        let particpantsCounter = 0;
-        let participantsCursor = participants.find();
-        allParticipants = await participantsCursor.toArray();
+        // let particpantsCounter: number = 0;
+        // let participantsCursor: Mongo.Cursor = participants.find();
+        // allParticipants = await participantsCursor.toArray();
         socket.on("message", async (message) => {
-            if (allParticipants.length > 0) {
-                for (let i = allParticipants.length; i < allParticipants.length; i++) {
-                    if (allParticipants[i].username != message) {
-                        particpantsCounter++;
-                    }
-                }
-                if (particpantsCounter == allParticipants.length) {
-                    participants.insertOne({ number: particpantsCounter + 1, username: message });
-                    console.log(message);
-                    particpantsCounter = 1;
+            for (let key in participantsArray) {
+                if (JSON.parse(message.toLocaleString()).username == participantsArray[key].username) {
+                    participantsArray[key].points = JSON.parse(message.toLocaleString()).points;
                 }
             }
-            else {
-                participants.insertOne({ number: particpantsCounter + 1, username: message, points: 0, answer: "" });
-                console.log(message);
-                particpantsCounter++;
-            }
+            //   if (allParticipants.length > 0) {
+            //     for (let i: number = allParticipants.length; i < allParticipants.length; i++) {
+            //       if (allParticipants[i].username != message) {
+            //         particpantsCounter++;
+            //       }
+            //     }
+            //     if (particpantsCounter == allParticipants.length) {
+            //       participants.insertOne({ username: message });
+            //       console.log(message);
+            //       particpantsCounter = 1;
+            //     }
+            //   } else {
+            //     participants.insertOne({ username: message, points: 0, answer: "" });
+            //     console.log(message);
+            //     particpantsCounter++;
+            //   }
         });
         socket.on("close", () => {
             console.log("User Disconnected");
@@ -66,11 +71,9 @@ var nerdquiz;
     });
     setInterval(() => {
         wss.clients.forEach(async (wss) => {
-            let participantsCursor = participants.find();
-            allParticipants = await participantsCursor.toArray();
-            wss.send(JSON.stringify(allParticipants));
+            wss.send(JSON.stringify(participantsArray));
         });
-    }, 1000);
+    }, 50);
     async function handleRequest(_request, _response) {
         console.log("Action recieved");
         _response.setHeader("Access-Control-Allow-Origin", "*");
@@ -125,6 +128,21 @@ var nerdquiz;
             if (url.pathname == "/quizList") {
                 _response.setHeader("content-type", "application/json");
                 _response.write(JSON.stringify(allQuizzes));
+            }
+            if (url.pathname == "/participant") {
+                let counter = 0;
+                for (let key in participantsArray) {
+                    if (participantsArray[key].username == url.query.username) {
+                        counter++;
+                    }
+                    if (counter == participantsArray.length) {
+                        let participant = { username: JSON.stringify(url.query.username), points: 0, answer: "No answer yet" };
+                        participantsArray.push(participant);
+                    }
+                }
+                if (counter == 0) {
+                    participantsArray.push({ username: url.query.username, points: 0, answer: "No answer yet" });
+                }
             }
             _response.end();
         }

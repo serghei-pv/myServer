@@ -1,1 +1,6 @@
-Für jeden Teilnehmer einzelne Variablen anlegen
+Websocket nur auf quiz.html ausführen(?)
+
+DATENBANK FÜR AKTIVES QUIZ NICHT NOTWENDIG!
+https://javascript.info/websocket#chat-example
+
+Teilnehmer und Antworten nicht über Websocket, sondern einfach normale Serveranfragen bearbeiten.

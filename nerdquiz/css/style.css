@@ -191,7 +191,6 @@ textarea {
 #quizMain {
   display: flex;
   justify-content: space-between;
-  text-align: left;
   padding-top: 5%;
   width: 100%;
 }
@@ -199,6 +198,7 @@ textarea {
 #QAArea {
   order: 1;
   padding: 5%;
+  text-align: left;
 }
 
 #questionDisplay {
@@ -219,13 +219,6 @@ textarea {
 }
 
 #QAArea {
-  width: 100%;
-}
-
-#participantsArea {
-  order: 2;
-  text-align: right;
-  padding: 5%;
   width: 100%;
 }
 
@@ -267,4 +260,43 @@ textarea {
   width: 386px;
   border-bottom: 2px solid #7d2906;
   border-radius: 5px 5px 5px 5px;
+}
+
+#participantsArea {
+  order: 2;
+  margin: 5%;
+  width: 100%;
+  text-align: right;
+}
+
+.participantTable {
+  width: 100%;
+  border: 2px solid black;
+}
+
+.participantName {
+  float: left;
+}
+
+.participantPoints {
+}
+
+.participantSubPoint,
+.participantAddPoint {
+  cursor: pointer;
+  margin-right: 10%;
+}
+
+.participantAnswer {
+  width: 100%;
+  padding: none;
+  font-size: 35px;
+}
+
+.participantPoints,
+.participantName,
+.participantSubPoint,
+.participantAddPoint,
+.participantAnswer {
+  display: inline;
 }
