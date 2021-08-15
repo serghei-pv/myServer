@@ -21,6 +21,7 @@ namespace nerdquiz {
 
   let createQuestionsCounter: number = 2;
   let questionCounter: number = 0;
+  let quiz = JSON.parse(localStorage.getItem("quiz"));
 
   let host: string = "http://localhost:8100/";
   let connectionVariable: string = "connected";
@@ -29,6 +30,7 @@ namespace nerdquiz {
   let createQuizVariable: string = "create";
   let quizListVariable: string = "quizList";
   let participantVariable: string = "participant";
+  let answerVariable: string = "answer";
 
   if (sessionStorage.getItem("login") != "true") {
     for (let i: number = indexMenuRight.childNodes.length; i > 0; i--) {
@@ -61,6 +63,9 @@ namespace nerdquiz {
     let quiz = JSON.parse(localStorage.getItem("quiz"));
     if (sessionStorage.getItem("user") == quiz.user) {
       hostQuiz();
+
+      document.getElementById("previousQuestion").addEventListener("click", previousQuestion);
+      document.getElementById("nextQuestion").addEventListener("click", nextQuestion);
 
       ws.addEventListener("message", ({ data }) => {
         for (let i: number = 0; i < JSON.parse(data).length; i++) {
@@ -155,28 +160,59 @@ namespace nerdquiz {
     }
   }
 
+  function displayQuestion(): void {
+    questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
+    questionDisplay.innerHTML = quiz.question[questionCounter];
+    answerDisplay.innerHTML = "Answer: " + quiz.answer[questionCounter];
+  }
+
   function hostQuiz(): void {
-    let quiz = JSON.parse(localStorage.getItem("quiz"));
-    document.getElementById("previousQuestion").style.visibility = "visible";
     document.getElementById("nextQuestion").style.visibility = "visible";
 
     quizFooter.appendChild(questionNumberDisplay);
     QAArea.appendChild(questionDisplay);
     QAArea.appendChild(answerDisplay);
 
-    questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
-    questionDisplay.innerHTML = quiz.question[questionCounter];
-    answerDisplay.innerHTML = "Answer: " + quiz.answer[questionCounter];
+    displayQuestion();
   }
 
   function participateQuiz(): void {
+    let answerForm: HTMLFormElement = <HTMLFormElement>document.createElement("FORM");
     let textArea: HTMLTextAreaElement = <HTMLTextAreaElement>document.createElement("TEXTAREA");
     let submitButton: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
-    QAArea.appendChild(textArea);
-    QAArea.appendChild(submitButton);
+    QAArea.appendChild(answerForm);
+    answerForm.appendChild(textArea);
+    answerForm.appendChild(submitButton);
     textArea.className = "participantsTextarea";
+    textArea.name = "answer";
     submitButton.className = "submitButton";
     submitButton.innerHTML = "Answer";
+    submitButton.type = "button";
+
+    submitButton.addEventListener("click", processAnswer);
+  }
+
+  function previousQuestion(): void {
+    questionCounter--;
+
+    if (questionCounter == 0) {
+      document.getElementById("previousQuestion").style.visibility = "hidden";
+    }
+
+    document.getElementById("nextQuestion").style.visibility = "visible";
+
+    displayQuestion();
+  }
+  function nextQuestion(): void {
+    questionCounter++;
+
+    if (quiz.question[questionCounter + 1] == undefined) {
+      document.getElementById("nextQuestion").style.visibility = "hidden";
+    }
+
+    document.getElementById("previousQuestion").style.visibility = "visible";
+
+    displayQuestion();
   }
 
   function preocessConnection(): void {
@@ -196,6 +232,9 @@ namespace nerdquiz {
   }
   function processParticipant(): void {
     processRequest(host, participantVariable);
+  }
+  function processAnswer(): void {
+    processRequest(host, answerVariable);
   }
 
   async function processRequest(_url: RequestInfo, _pathname: string): Promise<void> {
@@ -257,6 +296,11 @@ namespace nerdquiz {
 
     if (_pathname == participantVariable) {
       _url += participantVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
+      response = await fetch(_url);
+    }
+
+    if (_pathname == answerVariable) {
+      _url += answerVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
       response = await fetch(_url);
     }
   }

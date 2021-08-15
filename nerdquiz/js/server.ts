@@ -2,9 +2,7 @@ import * as Http from "http";
 import * as Url from "url";
 import * as Mongo from "mongodb";
 import * as Websocket from "ws";
-import { User } from "../js/interface";
-import { Quiz } from "../js/interface";
-import { Participant } from "../js/interface";
+import { User, Quiz, Participant } from "../js/interface";
 
 let participantsArray: Participant[] = [];
 
@@ -166,6 +164,14 @@ export namespace nerdquiz {
 
         if (counter == 0) {
           participantsArray.push({ username: url.query.username, points: 0, answer: "No answer yet" });
+        }
+      }
+
+      if (url.pathname == "/answer") {
+        for (let key in participantsArray) {
+          if (participantsArray[key].username == url.query.username) {
+            participantsArray[key].answer = url.query.answer.toLocaleString();
+          }
         }
       }
       _response.end();

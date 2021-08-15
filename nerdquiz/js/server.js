@@ -144,6 +144,13 @@ var nerdquiz;
                     participantsArray.push({ username: url.query.username, points: 0, answer: "No answer yet" });
                 }
             }
+            if (url.pathname == "/answer") {
+                for (let key in participantsArray) {
+                    if (participantsArray[key].username == url.query.username) {
+                        participantsArray[key].answer = url.query.answer.toLocaleString();
+                    }
+                }
+            }
             _response.end();
         }
     }

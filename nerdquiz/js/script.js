@@ -20,6 +20,7 @@ var nerdquiz;
     let participantsArea = document.getElementById("participantsArea");
     let createQuestionsCounter = 2;
     let questionCounter = 0;
+    let quiz = JSON.parse(localStorage.getItem("quiz"));
     let host = "http://localhost:8100/";
     let connectionVariable = "connected";
     let loginVariable = "login";
@@ -27,6 +28,7 @@ var nerdquiz;
     let createQuizVariable = "create";
     let quizListVariable = "quizList";
     let participantVariable = "participant";
+    let answerVariable = "answer";
     if (sessionStorage.getItem("login") != "true") {
         for (let i = indexMenuRight.childNodes.length; i > 0; i--) {
             indexMenuRight.removeChild(indexMenuRight.lastChild);
@@ -54,6 +56,8 @@ var nerdquiz;
         let quiz = JSON.parse(localStorage.getItem("quiz"));
         if (sessionStorage.getItem("user") == quiz.user) {
             hostQuiz();
+            document.getElementById("previousQuestion").addEventListener("click", previousQuestion);
+            document.getElementById("nextQuestion").addEventListener("click", nextQuestion);
             ws.addEventListener("message", ({ data }) => {
                 for (let i = 0; i < JSON.parse(data).length; i++) {
                     let particpantTable = document.createElement("P");
@@ -134,25 +138,47 @@ var nerdquiz;
             createQuestionsCounter--;
         }
     }
-    function hostQuiz() {
-        let quiz = JSON.parse(localStorage.getItem("quiz"));
-        document.getElementById("previousQuestion").style.visibility = "visible";
-        document.getElementById("nextQuestion").style.visibility = "visible";
-        quizFooter.appendChild(questionNumberDisplay);
-        QAArea.appendChild(questionDisplay);
-        QAArea.appendChild(answerDisplay);
+    function displayQuestion() {
         questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
         questionDisplay.innerHTML = quiz.question[questionCounter];
         answerDisplay.innerHTML = "Answer: " + quiz.answer[questionCounter];
     }
+    function hostQuiz() {
+        document.getElementById("nextQuestion").style.visibility = "visible";
+        quizFooter.appendChild(questionNumberDisplay);
+        QAArea.appendChild(questionDisplay);
+        QAArea.appendChild(answerDisplay);
+        displayQuestion();
+    }
     function participateQuiz() {
+        let answerForm = document.createElement("FORM");
         let textArea = document.createElement("TEXTAREA");
         let submitButton = document.createElement("BUTTON");
-        QAArea.appendChild(textArea);
-        QAArea.appendChild(submitButton);
+        QAArea.appendChild(answerForm);
+        answerForm.appendChild(textArea);
+        answerForm.appendChild(submitButton);
         textArea.className = "participantsTextarea";
+        textArea.name = "answer";
         submitButton.className = "submitButton";
         submitButton.innerHTML = "Answer";
+        submitButton.type = "button";
+        submitButton.addEventListener("click", processAnswer);
+    }
+    function previousQuestion() {
+        questionCounter--;
+        if (questionCounter == 0) {
+            document.getElementById("previousQuestion").style.visibility = "hidden";
+        }
+        document.getElementById("nextQuestion").style.visibility = "visible";
+        displayQuestion();
+    }
+    function nextQuestion() {
+        questionCounter++;
+        if (quiz.question[questionCounter + 1] == undefined) {
+            document.getElementById("nextQuestion").style.visibility = "hidden";
+        }
+        document.getElementById("previousQuestion").style.visibility = "visible";
+        displayQuestion();
     }
     function preocessConnection() {
         processRequest("ws://localhost:8100/", connectionVariable);
@@ -171,6 +197,9 @@ var nerdquiz;
     }
     function processParticipant() {
         processRequest(host, participantVariable);
+    }
+    function processAnswer() {
+        processRequest(host, answerVariable);
     }
     async function processRequest(_url, _pathname) {
         let formData = new FormData(document.forms[0]);
@@ -222,6 +251,10 @@ var nerdquiz;
         }
         if (_pathname == participantVariable) {
             _url += participantVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
+            response = await fetch(_url);
+        }
+        if (_pathname == answerVariable) {
+            _url += answerVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
             response = await fetch(_url);
         }
     }
