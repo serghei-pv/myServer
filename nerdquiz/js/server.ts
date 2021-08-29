@@ -4,8 +4,6 @@ import * as Mongo from "mongodb";
 import * as Websocket from "ws";
 import { User, Quiz, Participant } from "../js/interface";
 
-let participantsArray: Participant[] = [];
-
 export namespace nerdquiz {
   //let dbURL: string = "mongodb://localhost:27017";
   let dbURL: string = "mongodb+srv://userGIS:GISecure@clusterraster.u3qcg.mongodb.net";
@@ -14,10 +12,9 @@ export namespace nerdquiz {
   if (!port) port = 8100;
   let userbase: Mongo.Collection;
   let quiz: Mongo.Collection;
-  // let participants: Mongo.Collection;
   let allUser: User[];
   let allQuizzes: Quiz[];
-  // let allParticipants: Participant[];
+  let participantsArray: Participant[] = [];
 
   console.log("Starting server");
   let server: Http.Server = Http.createServer();
@@ -30,13 +27,11 @@ export namespace nerdquiz {
 
   async function connectToDb(_url: string): Promise<void> {
     let options: Mongo.MongoClientOptions = { useNewUrlParser: true, useUnifiedTopology: true };
-
     let mongoClient: Mongo.MongoClient = new Mongo.MongoClient(_url, options);
     await mongoClient.connect();
 
     userbase = mongoClient.db("nerdquiz").collection("user");
     quiz = mongoClient.db("nerdquiz").collection("quizzes");
-    // participants = mongoClient.db("nerdquiz").collection("participants");
   }
 
   function handleListen(): void {
@@ -46,33 +41,12 @@ export namespace nerdquiz {
   wss.on("connection", async (socket) => {
     console.log("User Connected");
 
-    // let particpantsCounter: number = 0;
-    // let participantsCursor: Mongo.Cursor = participants.find();
-    // allParticipants = await participantsCursor.toArray();
-
     socket.on("message", async (message) => {
       for (let key in participantsArray) {
         if (JSON.parse(message.toLocaleString()).username == participantsArray[key].username) {
           participantsArray[key].points = JSON.parse(message.toLocaleString()).points;
         }
       }
-
-      //   if (allParticipants.length > 0) {
-      //     for (let i: number = allParticipants.length; i < allParticipants.length; i++) {
-      //       if (allParticipants[i].username != message) {
-      //         particpantsCounter++;
-      //       }
-      //     }
-      //     if (particpantsCounter == allParticipants.length) {
-      //       participants.insertOne({ username: message });
-      //       console.log(message);
-      //       particpantsCounter = 1;
-      //     }
-      //   } else {
-      //     participants.insertOne({ username: message, points: 0, answer: "" });
-      //     console.log(message);
-      //     particpantsCounter++;
-      //   }
     });
 
     socket.on("close", () => {
@@ -84,7 +58,7 @@ export namespace nerdquiz {
     wss.clients.forEach(async (wss) => {
       wss.send(JSON.stringify(participantsArray));
     });
-  }, 50);
+  }, 1000);
 
   async function handleRequest(_request: Http.IncomingMessage, _response: Http.ServerResponse): Promise<void> {
     console.log("Action recieved");

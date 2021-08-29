@@ -4,7 +4,9 @@ var nerdquiz;
     let ws = new WebSocket("ws://localhost:8100/");
     let currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
     let indexMain = document.getElementById("indexMain");
-    let indexMenuRight = document.getElementById("indexMenuRight");
+    let leftMain = document.getElementById("leftMain");
+    let rightMain = document.getElementById("rightMain");
+    let indexMenu = document.getElementById("indexMenu");
     let registerButton = document.getElementById("registerButton");
     let loginButton = document.getElementById("loginButton");
     let createQuizForm = document.getElementById("createQuizForm");
@@ -30,15 +32,13 @@ var nerdquiz;
     let participantVariable = "participant";
     let answerVariable = "answer";
     if (sessionStorage.getItem("login") != "true") {
-        for (let i = indexMenuRight.childNodes.length; i > 0; i--) {
-            indexMenuRight.removeChild(indexMenuRight.lastChild);
-        }
+        indexMenu.style.visibility = "hidden";
     }
-    if (currentPage == "index.html") {
+    if (currentPage == "index.html" || currentPage == "") {
         registerButton.addEventListener("click", processRegistration);
         loginButton.addEventListener("click", processLogin);
         if (sessionStorage.getItem("login") == "true") {
-            window.addEventListener("load", preocessConnection);
+            window.addEventListener("load", processConnection);
             for (let i = indexMain.childNodes.length; i > 0; i--) {
                 indexMain.removeChild(indexMain.lastChild);
             }
@@ -53,7 +53,6 @@ var nerdquiz;
         createQuiz.addEventListener("click", processQuizCreation);
     }
     if (currentPage == "quiz.html") {
-        let quiz = JSON.parse(localStorage.getItem("quiz"));
         if (sessionStorage.getItem("user") == quiz.user) {
             hostQuiz();
             document.getElementById("previousQuestion").addEventListener("click", previousQuestion);
@@ -62,6 +61,7 @@ var nerdquiz;
                 for (let i = 0; i < JSON.parse(data).length; i++) {
                     let particpantTable = document.createElement("P");
                     let particpantTable2 = document.createElement("DIV");
+                    let participantContainer = document.createElement("LI");
                     let participantName = document.createElement("DIV");
                     let participantPoints = document.createElement("DIV");
                     let participantSubPoint = document.createElement("DIV");
@@ -69,7 +69,7 @@ var nerdquiz;
                     let participantAnswer = document.createElement("DIV");
                     let subParticipant = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points - 1 };
                     let addParticipant = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points + 1 };
-                    if (JSON.parse(data).length > participantsArea.childNodes.length && i == participantsArea.childNodes.length) {
+                    if (i == leftMain.childNodes.length) {
                         participantName.id = "name" + i;
                         participantPoints.id = "points" + i;
                         participantAnswer.id = "answer" + i;
@@ -77,21 +77,28 @@ var nerdquiz;
                         participantAddPoint.id = "addPoint" + i;
                         particpantTable.className = "particpantTable";
                         particpantTable2.className = "particpantTable2";
-                        participantPoints.className = "participantPoints";
+                        participantContainer.className = "participantContainer";
                         participantName.className = "participantName";
+                        participantPoints.className = "participantPoints";
                         participantSubPoint.className = "participantSubPoint";
                         participantAddPoint.className = "participantAddPoint";
                         participantAnswer.className = "participantAnswer";
-                        participantsArea.appendChild(particpantTable);
-                        particpantTable.appendChild(particpantTable2);
-                        particpantTable2.appendChild(participantName);
-                        particpantTable2.appendChild(participantSubPoint);
-                        particpantTable2.appendChild(participantAddPoint);
-                        particpantTable2.appendChild(participantPoints);
-                        particpantTable.appendChild(participantAnswer);
+                        leftMain.appendChild(participantContainer);
+                        participantContainer.appendChild(participantName);
+                        participantContainer.appendChild(participantPoints);
+                        // leftMain.appendChild(participantSubPoint);
+                        // leftMain.appendChild(participantAddPoint);
+                        // leftMain.appendChild(participantAnswer);
+                        // participantsArea.appendChild(particpantTable);
+                        // particpantTable.appendChild(particpantTable2);
+                        // particpantTable2.appendChild(participantName);
+                        // particpantTable2.appendChild(participantPoints);
+                        // particpantTable2.appendChild(participantSubPoint);
+                        // particpantTable2.appendChild(participantAddPoint);
+                        // particpantTable.appendChild(participantAnswer);
                     }
-                    document.getElementById("subPoint" + i).addEventListener("click", subPoints);
-                    document.getElementById("addPoint" + i).addEventListener("click", addPoints);
+                    // document.getElementById("subPoint" + i).addEventListener("click", subPoints);
+                    // document.getElementById("addPoint" + i).addEventListener("click", addPoints);
                     function subPoints() {
                         if (JSON.parse(data)[i].points > 0) {
                             ws.send(JSON.stringify(subParticipant));
@@ -100,11 +107,13 @@ var nerdquiz;
                     function addPoints() {
                         ws.send(JSON.stringify(addParticipant));
                     }
-                    participantSubPoint.innerHTML = "-";
-                    participantAddPoint.innerHTML = "+";
+                    // participantSubPoint.innerHTML = "-";
+                    // participantAddPoint.innerHTML = "+";
                     document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
                     document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
-                    document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
+                    // document.getElementById("name" + i).title = JSON.parse(data)[i].answer;
+                    // document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
+                    // document.getElementById("answer" + i).title = JSON.parse(data)[i].username;
                 }
             });
         }
@@ -114,25 +123,29 @@ var nerdquiz;
         }
     }
     function addQuestion() {
-        let headingCreateQuestion = document.createElement("H1");
+        let createSlot = document.createElement("DIV");
+        let numberArea = document.createElement("DIV");
         let questionArea = document.createElement("TEXTAREA");
         let answerArea = document.createElement("TEXTAREA");
-        headingCreateQuestion.innerHTML = "Question " + createQuestionsCounter;
+        numberArea.innerHTML = JSON.stringify(createQuestionsCounter);
+        numberArea.className = "numberArea";
+        createSlot.className = "createSlot";
         questionArea.className = "questionArea";
         answerArea.className = "answerArea";
         questionArea.setAttribute("name", "question");
         answerArea.setAttribute("name", "answer");
         questionArea.placeholder = "Question:";
         answerArea.placeholder = "Answer:";
-        createQuizForm.appendChild(headingCreateQuestion);
-        createQuizForm.appendChild(questionArea);
-        createQuizForm.appendChild(answerArea);
+        createQuizForm.appendChild(createSlot);
+        createSlot.appendChild(numberArea);
+        createSlot.appendChild(questionArea);
+        createSlot.appendChild(answerArea);
         window.scrollTo(0, document.body.scrollHeight);
         createQuestionsCounter++;
     }
     function removeQuestion() {
         if (createQuestionsCounter > 2) {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 1; i++) {
                 createQuizForm.removeChild(createQuizForm.lastChild);
             }
             createQuestionsCounter--;
@@ -180,7 +193,7 @@ var nerdquiz;
         document.getElementById("previousQuestion").style.visibility = "visible";
         displayQuestion();
     }
-    function preocessConnection() {
+    function processConnection() {
         processRequest("ws://localhost:8100/", connectionVariable);
     }
     function processRegistration() {
@@ -239,12 +252,30 @@ var nerdquiz;
             response = await fetch(_url);
             let quizDataArray = await response.json();
             for (let i = 0; i < quizDataArray.length; i++) {
-                let quizSlot = document.createElement("LI");
-                quizSlot.addEventListener("click", loadQuiz);
-                quizList.appendChild(quizSlot);
-                quizSlot.className = "quizSlot";
-                quizSlot.innerHTML = quizDataArray[i]._id + " - <i>by " + quizDataArray[i].user + "</i>";
+                let quizRow = document.createElement("TR");
+                let quizNumber = document.createElement("TD");
+                let quizID = document.createElement("TD");
+                let quizQuestionAmount = document.createElement("TD");
+                let quizSubmitter = document.createElement("TD");
+                quizRow.addEventListener("click", loadQuiz);
+                quizRow.className = "quizRow";
+                quizNumber.className = "quizNumber";
+                quizID.className = "quizID";
+                quizQuestionAmount.className = "quizQuestionAmount";
+                quizSubmitter.className = "quizSubmitter";
+                quizNumber.innerHTML = JSON.stringify(i + 1);
+                quizID.innerHTML = quizDataArray[i]._id;
+                quizQuestionAmount.innerHTML = quizDataArray[i].question.length;
+                quizSubmitter.innerHTML = quizDataArray[i].user;
+                quizList.appendChild(quizRow);
+                quizRow.appendChild(quizNumber);
+                quizRow.appendChild(quizID);
+                quizRow.appendChild(quizQuestionAmount);
+                quizRow.appendChild(quizSubmitter);
                 function loadQuiz() {
+                    if (sessionStorage.getItem("user") == quizDataArray[i].user) {
+                        localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
+                    }
                     window.location.href = "../pages/quiz.html";
                 }
             }
@@ -258,75 +289,5 @@ var nerdquiz;
             response = await fetch(_url);
         }
     }
-    // if (currentPage == "quiz.html") {
-    //   ws.addEventListener("connection", connection);
-    // }
-    // ws.addEventListener("message", ({ data }) => {
-    //   console.log(data);
-    // });
-    // function connection(): void {
-    //   let username: string = '{"username": sessionStorage.getItem("user")}';
-    //   ws.send(username);
-    // }
-    // let username: string = "";
-    // let points: number = 0;
-    // let answer: string = "";
-    // ws.addEventListener("message", ({ data }) => {
-    //   let i: number;
-    //   if (currentPage == "quiz.html") {
-    //     for (i = 0; i < JSON.parse(data).length; i++) {
-    //       let particpantTable: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-    //       let particpantTable2: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-    //       let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-    //       let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-    //       let participantSubPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-    //       let participantAddPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-    //       let participantAnswer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-    //       if (JSON.parse(data).length > participantsArea.childNodes.length) {
-    //         username = JSON.parse(data)[i].username;
-    //         points = JSON.parse(data)[i].points;
-    //         answer = JSON.parse(data)[i].answer;
-    //         participantPoints.id = "points" + i;
-    //         participantName.id = "name" + i;
-    //         participantAnswer.id = "answer" + i;
-    //         particpantTable.className = "particpantTable";
-    //         particpantTable2.className = "particpantTable2";
-    //         participantPoints.className = "participantPoints";
-    //         participantName.className = "participantName";
-    //         participantSubPoint.className = "participantSubPoint";
-    //         participantAddPoint.className = "participantAddPoint";
-    //         participantAnswer.className = "participantAnswer";
-    //         participantsArea.appendChild(particpantTable);
-    //         particpantTable.appendChild(particpantTable2);
-    //         particpantTable2.appendChild(participantName);
-    //         particpantTable2.appendChild(participantSubPoint);
-    //         particpantTable2.appendChild(participantAddPoint);
-    //         particpantTable2.appendChild(participantPoints);
-    //         particpantTable.appendChild(participantAnswer);
-    //       }
-    //       if (participantSubPoint.innerHTML != "-") {
-    //         participantSubPoint.innerHTML = "-";
-    //       }
-    //       if (participantAddPoint.innerHTML != "+") {
-    //         participantAddPoint.innerHTML = "+";
-    //       }
-    //       if (username != JSON.parse(data)[i].username) {
-    //         document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
-    //       }
-    //       if (points != JSON.parse(data)[i].points) {
-    //         document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
-    //       }
-    //       if (answer != JSON.parse(data)[i].answer) {
-    //         document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
-    //       }
-    //       username = JSON.parse(data)[i].username;
-    //       points = JSON.parse(data)[i].points;
-    //       answer = JSON.parse(data)[i].answer;
-    //       if (i == JSON.parse(data).length - 1) {
-    //         i = 0;
-    //       }
-    //     }
-    //   }
-    // });
 })(nerdquiz || (nerdquiz = {}));
 //# sourceMappingURL=script.js.map

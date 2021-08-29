@@ -3,7 +3,9 @@ namespace nerdquiz {
   let currentPage: string = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
 
   let indexMain: HTMLElement = <HTMLElement>document.getElementById("indexMain");
-  let indexMenuRight: HTMLUListElement = <HTMLUListElement>document.getElementById("indexMenuRight");
+  let leftMain: HTMLUListElement = <HTMLUListElement>document.getElementById("leftMain");
+  let rightMain: HTMLUListElement = <HTMLUListElement>document.getElementById("rightMain");
+  let indexMenu: HTMLUListElement = <HTMLUListElement>document.getElementById("indexMenu");
   let registerButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("registerButton");
   let loginButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("loginButton");
   let createQuizForm: HTMLFormElement = <HTMLFormElement>document.getElementById("createQuizForm");
@@ -33,16 +35,14 @@ namespace nerdquiz {
   let answerVariable: string = "answer";
 
   if (sessionStorage.getItem("login") != "true") {
-    for (let i: number = indexMenuRight.childNodes.length; i > 0; i--) {
-      indexMenuRight.removeChild(indexMenuRight.lastChild);
-    }
+    indexMenu.style.visibility = "hidden";
   }
 
-  if (currentPage == "index.html") {
+  if (currentPage == "index.html" || currentPage == "") {
     registerButton.addEventListener("click", processRegistration);
     loginButton.addEventListener("click", processLogin);
     if (sessionStorage.getItem("login") == "true") {
-      window.addEventListener("load", preocessConnection);
+      window.addEventListener("load", processConnection);
       for (let i: number = indexMain.childNodes.length; i > 0; i--) {
         indexMain.removeChild(indexMain.lastChild);
       }
@@ -60,7 +60,6 @@ namespace nerdquiz {
   }
 
   if (currentPage == "quiz.html") {
-    let quiz = JSON.parse(localStorage.getItem("quiz"));
     if (sessionStorage.getItem("user") == quiz.user) {
       hostQuiz();
 
@@ -71,6 +70,7 @@ namespace nerdquiz {
         for (let i: number = 0; i < JSON.parse(data).length; i++) {
           let particpantTable: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
           let particpantTable2: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantContainer: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
           let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
           let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
           let participantSubPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
@@ -80,7 +80,7 @@ namespace nerdquiz {
           let subParticipant: any = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points - 1 };
           let addParticipant: any = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points + 1 };
 
-          if (JSON.parse(data).length > participantsArea.childNodes.length && i == participantsArea.childNodes.length) {
+          if (i == leftMain.childNodes.length) {
             participantName.id = "name" + i;
             participantPoints.id = "points" + i;
             participantAnswer.id = "answer" + i;
@@ -90,23 +90,32 @@ namespace nerdquiz {
             particpantTable.className = "particpantTable";
             particpantTable2.className = "particpantTable2";
 
-            participantPoints.className = "participantPoints";
+            participantContainer.className = "participantContainer";
             participantName.className = "participantName";
+            participantPoints.className = "participantPoints";
             participantSubPoint.className = "participantSubPoint";
             participantAddPoint.className = "participantAddPoint";
             participantAnswer.className = "participantAnswer";
 
-            participantsArea.appendChild(particpantTable);
-            particpantTable.appendChild(particpantTable2);
+            leftMain.appendChild(participantContainer);
+            participantContainer.appendChild(participantName);
+            participantContainer.appendChild(participantPoints);
+            // leftMain.appendChild(participantSubPoint);
+            // leftMain.appendChild(participantAddPoint);
+            // leftMain.appendChild(participantAnswer);
 
-            particpantTable2.appendChild(participantName);
-            particpantTable2.appendChild(participantSubPoint);
-            particpantTable2.appendChild(participantAddPoint);
-            particpantTable2.appendChild(participantPoints);
-            particpantTable.appendChild(participantAnswer);
+            // participantsArea.appendChild(particpantTable);
+            // particpantTable.appendChild(particpantTable2);
+
+            // particpantTable2.appendChild(participantName);
+            // particpantTable2.appendChild(participantPoints);
+            // particpantTable2.appendChild(participantSubPoint);
+            // particpantTable2.appendChild(participantAddPoint);
+            // particpantTable.appendChild(participantAnswer);
           }
-          document.getElementById("subPoint" + i).addEventListener("click", subPoints);
-          document.getElementById("addPoint" + i).addEventListener("click", addPoints);
+
+          // document.getElementById("subPoint" + i).addEventListener("click", subPoints);
+          // document.getElementById("addPoint" + i).addEventListener("click", addPoints);
           function subPoints(): void {
             if (JSON.parse(data)[i].points > 0) {
               ws.send(JSON.stringify(subParticipant));
@@ -116,11 +125,13 @@ namespace nerdquiz {
             ws.send(JSON.stringify(addParticipant));
           }
 
-          participantSubPoint.innerHTML = "-";
-          participantAddPoint.innerHTML = "+";
+          // participantSubPoint.innerHTML = "-";
+          // participantAddPoint.innerHTML = "+";
           document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
           document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
-          document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
+          // document.getElementById("name" + i).title = JSON.parse(data)[i].answer;
+          // document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
+          // document.getElementById("answer" + i).title = JSON.parse(data)[i].username;
         }
       });
     }
@@ -131,11 +142,14 @@ namespace nerdquiz {
   }
 
   function addQuestion(): void {
-    let headingCreateQuestion: HTMLHeadingElement = <HTMLHeadingElement>document.createElement("H1");
+    let createSlot: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+    let numberArea: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
     let questionArea: HTMLTextAreaElement = <HTMLTextAreaElement>document.createElement("TEXTAREA");
     let answerArea: HTMLTextAreaElement = <HTMLTextAreaElement>document.createElement("TEXTAREA");
 
-    headingCreateQuestion.innerHTML = "Question " + createQuestionsCounter;
+    numberArea.innerHTML = JSON.stringify(createQuestionsCounter);
+    numberArea.className = "numberArea";
+    createSlot.className = "createSlot";
     questionArea.className = "questionArea";
     answerArea.className = "answerArea";
     questionArea.setAttribute("name", "question");
@@ -143,9 +157,10 @@ namespace nerdquiz {
     questionArea.placeholder = "Question:";
     answerArea.placeholder = "Answer:";
 
-    createQuizForm.appendChild(headingCreateQuestion);
-    createQuizForm.appendChild(questionArea);
-    createQuizForm.appendChild(answerArea);
+    createQuizForm.appendChild(createSlot);
+    createSlot.appendChild(numberArea);
+    createSlot.appendChild(questionArea);
+    createSlot.appendChild(answerArea);
 
     window.scrollTo(0, document.body.scrollHeight);
     createQuestionsCounter++;
@@ -153,7 +168,7 @@ namespace nerdquiz {
 
   function removeQuestion(): void {
     if (createQuestionsCounter > 2) {
-      for (let i: number = 0; i < 3; i++) {
+      for (let i: number = 0; i < 1; i++) {
         createQuizForm.removeChild(createQuizForm.lastChild);
       }
       createQuestionsCounter--;
@@ -215,7 +230,7 @@ namespace nerdquiz {
     displayQuestion();
   }
 
-  function preocessConnection(): void {
+  function processConnection(): void {
     processRequest("ws://localhost:8100/", connectionVariable);
   }
   function processRegistration(): void {
@@ -282,13 +297,33 @@ namespace nerdquiz {
       let quizDataArray = await response.json();
 
       for (let i: number = 0; i < quizDataArray.length; i++) {
-        let quizSlot: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-        quizSlot.addEventListener("click", loadQuiz);
-        quizList.appendChild(quizSlot);
-        quizSlot.className = "quizSlot";
-        quizSlot.innerHTML = quizDataArray[i]._id + " - <i>by " + quizDataArray[i].user + "</i>";
+        let quizRow: HTMLTableRowElement = <HTMLTableRowElement>document.createElement("TR");
+        let quizNumber: HTMLTableDataCellElement = <HTMLTableDataCellElement>document.createElement("TD");
+        let quizID: HTMLTableDataCellElement = <HTMLTableDataCellElement>document.createElement("TD");
+        let quizQuestionAmount: HTMLTableDataCellElement = <HTMLTableDataCellElement>document.createElement("TD");
+        let quizSubmitter: HTMLTableDataCellElement = <HTMLTableDataCellElement>document.createElement("TD");
+        quizRow.addEventListener("click", loadQuiz);
+        quizRow.className = "quizRow";
+        quizNumber.className = "quizNumber";
+        quizID.className = "quizID";
+        quizQuestionAmount.className = "quizQuestionAmount";
+        quizSubmitter.className = "quizSubmitter";
+
+        quizNumber.innerHTML = JSON.stringify(i + 1);
+        quizID.innerHTML = quizDataArray[i]._id;
+        quizQuestionAmount.innerHTML = quizDataArray[i].question.length;
+        quizSubmitter.innerHTML = quizDataArray[i].user;
+
+        quizList.appendChild(quizRow);
+        quizRow.appendChild(quizNumber);
+        quizRow.appendChild(quizID);
+        quizRow.appendChild(quizQuestionAmount);
+        quizRow.appendChild(quizSubmitter);
 
         function loadQuiz(): void {
+          if (sessionStorage.getItem("user") == quizDataArray[i].user) {
+            localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
+          }
           window.location.href = "../pages/quiz.html";
         }
       }
@@ -304,89 +339,4 @@ namespace nerdquiz {
       response = await fetch(_url);
     }
   }
-
-  // if (currentPage == "quiz.html") {
-  //   ws.addEventListener("connection", connection);
-  // }
-
-  // ws.addEventListener("message", ({ data }) => {
-  //   console.log(data);
-  // });
-
-  // function connection(): void {
-  //   let username: string = '{"username": sessionStorage.getItem("user")}';
-  //   ws.send(username);
-  // }
-
-  // let username: string = "";
-  // let points: number = 0;
-  // let answer: string = "";
-
-  // ws.addEventListener("message", ({ data }) => {
-  //   let i: number;
-
-  //   if (currentPage == "quiz.html") {
-  //     for (i = 0; i < JSON.parse(data).length; i++) {
-  //       let particpantTable: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-  //       let particpantTable2: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-  //       let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-  //       let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-  //       let participantSubPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-  //       let participantAddPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-  //       let participantAnswer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-
-  //       if (JSON.parse(data).length > participantsArea.childNodes.length) {
-  //         username = JSON.parse(data)[i].username;
-  //         points = JSON.parse(data)[i].points;
-  //         answer = JSON.parse(data)[i].answer;
-
-  //         participantPoints.id = "points" + i;
-  //         participantName.id = "name" + i;
-  //         participantAnswer.id = "answer" + i;
-
-  //         particpantTable.className = "particpantTable";
-  //         particpantTable2.className = "particpantTable2";
-
-  //         participantPoints.className = "participantPoints";
-  //         participantName.className = "participantName";
-  //         participantSubPoint.className = "participantSubPoint";
-  //         participantAddPoint.className = "participantAddPoint";
-  //         participantAnswer.className = "participantAnswer";
-
-  //         participantsArea.appendChild(particpantTable);
-  //         particpantTable.appendChild(particpantTable2);
-
-  //         particpantTable2.appendChild(participantName);
-  //         particpantTable2.appendChild(participantSubPoint);
-  //         particpantTable2.appendChild(participantAddPoint);
-  //         particpantTable2.appendChild(participantPoints);
-  //         particpantTable.appendChild(participantAnswer);
-  //       }
-
-  //       if (participantSubPoint.innerHTML != "-") {
-  //         participantSubPoint.innerHTML = "-";
-  //       }
-  //       if (participantAddPoint.innerHTML != "+") {
-  //         participantAddPoint.innerHTML = "+";
-  //       }
-  //       if (username != JSON.parse(data)[i].username) {
-  //         document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
-  //       }
-  //       if (points != JSON.parse(data)[i].points) {
-  //         document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
-  //       }
-  //       if (answer != JSON.parse(data)[i].answer) {
-  //         document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
-  //       }
-
-  //       username = JSON.parse(data)[i].username;
-  //       points = JSON.parse(data)[i].points;
-  //       answer = JSON.parse(data)[i].answer;
-
-  //       if (i == JSON.parse(data).length - 1) {
-  //         i = 0;
-  //       }
-  //     }
-  //   }
-  // });
 }
