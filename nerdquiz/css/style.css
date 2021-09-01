@@ -343,21 +343,32 @@ textarea:focus {
   width: 25%;
 }
 
-#QAArea {
-  order: 1;
+#quizTop {
+  position: relative;
+  height: 300px;
   margin: 5%;
   margin-top: 0;
   text-align: left;
-  width: 50%;
+  width: 100%;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.199);
+}
+
+#quizBottom {
+  width: 100%;
+  text-align: left;
+  margin: 5%;
 }
 
 #questionDisplay {
-  font-size: 20px;
+  font-size: 25px;
 }
 
 #answerDisplay {
+  font-size: 20px;
   padding-top: 15px;
-  font-size: 15px;
+  padding-bottom: 15px;
+  position: absolute;
+  bottom: 0;
 }
 
 #questionDisplay,
@@ -416,18 +427,19 @@ textarea:focus {
   text-align: right;
 }
 
-.participantTable {
-  width: 100%;
-}
-
 .participantName {
   float: left;
+}
+
+.answerContainer {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .participantSubPoint,
 .participantAddPoint {
   cursor: pointer;
-  margin-right: 10%;
+  margin-right: 2%;
 
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -435,26 +447,33 @@ textarea:focus {
   user-select: none;
 }
 
+.participantAnswerName {
+  order: 1;
+  margin-right: 2%;
+}
+
+.participantSubPoint {
+  order: 2;
+}
+
+.participantAddPoint {
+  order: 3;
+}
+
 .participantAnswer {
+  order: 4;
   width: 100%;
   padding: none;
-  font-size: 15px;
+  font-size: 20px;
   word-wrap: break-word; /* IE 5.5-7 */
   white-space: -moz-pre-wrap; /* Firefox 1.0-2.0 */
   white-space: pre-wrap; /* current browsers */
 }
 
-.participantPoints,
-.participantName,
-.participantSubPoint,
-.participantAddPoint,
-.participantAnswer {
-  display: inline;
-}
-
 .participantContainer {
   margin-bottom: 7%;
   border-bottom: 2px solid #929292;
+  cursor: pointer;
 }
 
 .participantPoints {

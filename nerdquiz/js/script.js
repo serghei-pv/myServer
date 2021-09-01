@@ -14,12 +14,12 @@ var nerdquiz;
     let removeQuestionButton = document.getElementById("removeQuestionButton");
     let createQuiz = document.getElementById("createQuiz");
     let quizList = document.getElementById("quizList");
-    let QAArea = document.getElementById("QAArea");
+    let quizTop = document.getElementById("quizTop");
+    let quizBottom = document.getElementById("quizBottom");
     let quizFooter = document.getElementById("quizFooter");
     let questionDisplay = document.getElementById("questionDisplay");
     let answerDisplay = document.getElementById("answerDisplay");
     let questionNumberDisplay = document.getElementById("questionNumberDisplay");
-    let participantsArea = document.getElementById("participantsArea");
     let createQuestionsCounter = 2;
     let questionCounter = 0;
     let quiz = JSON.parse(localStorage.getItem("quiz"));
@@ -55,72 +55,109 @@ var nerdquiz;
     if (currentPage == "quiz.html") {
         if (sessionStorage.getItem("user") == quiz.user) {
             hostQuiz();
-            document.getElementById("previousQuestion").addEventListener("click", previousQuestion);
-            document.getElementById("nextQuestion").addEventListener("click", nextQuestion);
-            ws.addEventListener("message", ({ data }) => {
-                for (let i = 0; i < JSON.parse(data).length; i++) {
-                    let particpantTable = document.createElement("P");
-                    let particpantTable2 = document.createElement("DIV");
-                    let participantContainer = document.createElement("LI");
-                    let participantName = document.createElement("DIV");
-                    let participantPoints = document.createElement("DIV");
-                    let participantSubPoint = document.createElement("DIV");
-                    let participantAddPoint = document.createElement("DIV");
-                    let participantAnswer = document.createElement("DIV");
-                    let subParticipant = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points - 1 };
-                    let addParticipant = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points + 1 };
-                    if (i == leftMain.childNodes.length) {
-                        participantName.id = "name" + i;
-                        participantPoints.id = "points" + i;
-                        participantAnswer.id = "answer" + i;
-                        participantSubPoint.id = "subPoint" + i;
-                        participantAddPoint.id = "addPoint" + i;
-                        particpantTable.className = "particpantTable";
-                        particpantTable2.className = "particpantTable2";
-                        participantContainer.className = "participantContainer";
-                        participantName.className = "participantName";
-                        participantPoints.className = "participantPoints";
-                        participantSubPoint.className = "participantSubPoint";
-                        participantAddPoint.className = "participantAddPoint";
-                        participantAnswer.className = "participantAnswer";
-                        leftMain.appendChild(participantContainer);
-                        participantContainer.appendChild(participantName);
-                        participantContainer.appendChild(participantPoints);
-                        // leftMain.appendChild(participantSubPoint);
-                        // leftMain.appendChild(participantAddPoint);
-                        // leftMain.appendChild(participantAnswer);
-                        // participantsArea.appendChild(particpantTable);
-                        // particpantTable.appendChild(particpantTable2);
-                        // particpantTable2.appendChild(participantName);
-                        // particpantTable2.appendChild(participantPoints);
-                        // particpantTable2.appendChild(participantSubPoint);
-                        // particpantTable2.appendChild(participantAddPoint);
-                        // particpantTable.appendChild(participantAnswer);
-                    }
-                    // document.getElementById("subPoint" + i).addEventListener("click", subPoints);
-                    // document.getElementById("addPoint" + i).addEventListener("click", addPoints);
-                    function subPoints() {
-                        if (JSON.parse(data)[i].points > 0) {
-                            ws.send(JSON.stringify(subParticipant));
-                        }
-                    }
-                    function addPoints() {
-                        ws.send(JSON.stringify(addParticipant));
-                    }
-                    // participantSubPoint.innerHTML = "-";
-                    // participantAddPoint.innerHTML = "+";
-                    document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
-                    document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
-                    // document.getElementById("name" + i).title = JSON.parse(data)[i].answer;
-                    // document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
-                    // document.getElementById("answer" + i).title = JSON.parse(data)[i].username;
-                }
-            });
+            manageQuiz();
         }
         if (sessionStorage.getItem("user") != quiz.user) {
             participateQuiz();
             processParticipant();
         }
+    }
+    function hostQuiz() {
+        document.getElementById("nextQuestion").style.visibility = "visible";
+        quizFooter.appendChild(questionNumberDisplay);
+        quizTop.appendChild(questionDisplay);
+        quizTop.appendChild(answerDisplay);
+        displayQuestion();
+    }
+    function manageQuiz() {
+        document.getElementById("previousQuestion").addEventListener("click", previousQuestion);
+        document.getElementById("nextQuestion").addEventListener("click", nextQuestion);
+        ws.addEventListener("message", ({ data }) => {
+            for (let i = 0; i < JSON.parse(data).length; i++) {
+                let participantContainer = document.createElement("LI");
+                let participantName = document.createElement("DIV");
+                let participantPoints = document.createElement("DIV");
+                let answerContainer = document.createElement("DIV");
+                let participantAnswerName = document.createElement("DIV");
+                let participantAnswer = document.createElement("DIV");
+                let participantSubPoint = document.createElement("DIV");
+                let participantAddPoint = document.createElement("DIV");
+                let subParticipant = { username: JSON.parse(data)[i].username, points: -1 };
+                let addParticipant = { username: JSON.parse(data)[i].username, points: +1 };
+                if (i == leftMain.childNodes.length) {
+                    participantContainer.id = "participantContainer" + i;
+                    participantName.id = "name" + i;
+                    participantPoints.id = "points" + i;
+                    answerContainer.id = "answerContainer" + i;
+                    participantAnswerName.id = "answerName" + i;
+                    participantAnswer.id = "answer" + i;
+                    participantSubPoint.id = "subPoint" + i;
+                    participantAddPoint.id = "addPoint" + i;
+                    participantContainer.className = "participantContainer";
+                    participantName.className = "participantName";
+                    participantPoints.className = "participantPoints";
+                    participantSubPoint.className = "participantSubPoint";
+                    participantAddPoint.className = "participantAddPoint";
+                    answerContainer.className = "answerContainer";
+                    participantAnswerName.className = "participantAnswerName";
+                    participantAnswer.className = "participantAnswer";
+                    leftMain.appendChild(participantContainer);
+                    participantContainer.appendChild(participantName);
+                    participantContainer.appendChild(participantPoints);
+                    answerContainer.appendChild(participantAnswerName);
+                    answerContainer.appendChild(participantSubPoint);
+                    answerContainer.appendChild(participantAddPoint);
+                    answerContainer.appendChild(participantAnswer);
+                    participantSubPoint.innerHTML = "-";
+                    participantAddPoint.innerHTML = "+";
+                    participantContainer.addEventListener("click", showParticipantAnswer);
+                    participantSubPoint.addEventListener("click", subPoints);
+                    participantAddPoint.addEventListener("click", addPoints);
+                    function showParticipantAnswer() {
+                        if (quizBottom.childNodes.length != 0) {
+                            quizBottom.removeChild(quizBottom.lastChild);
+                        }
+                        quizBottom.appendChild(answerContainer);
+                        participantAnswerName.innerHTML = JSON.parse(data)[i].username;
+                        participantAnswer.innerHTML = JSON.parse(data)[i].answer;
+                    }
+                }
+                function subPoints() {
+                    ws.send(JSON.stringify(subParticipant));
+                }
+                function addPoints() {
+                    ws.send(JSON.stringify(addParticipant));
+                }
+                if (document.getElementById("name" + i).innerHTML != JSON.parse(data)[i].username ||
+                    document.getElementById("points" + i).innerHTML != JSON.parse(data)[i].points) {
+                    document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
+                    document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
+                }
+                if (quizBottom.childNodes.length != 0) {
+                    if (document.getElementById("answerName" + i) != null && document.getElementById("answer" + i) != null) {
+                        if (document.getElementById("answerName" + i).innerHTML != JSON.parse(data)[i].username ||
+                            document.getElementById("answer" + i).innerHTML != JSON.parse(data)[i].answer) {
+                            document.getElementById("answerName" + i).innerHTML = JSON.parse(data)[i].username;
+                            document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
+                        }
+                    }
+                }
+            }
+        });
+    }
+    function participateQuiz() {
+        let answerForm = document.createElement("FORM");
+        let textArea = document.createElement("TEXTAREA");
+        let submitButton = document.createElement("BUTTON");
+        quizTop.appendChild(answerForm);
+        answerForm.appendChild(textArea);
+        answerForm.appendChild(submitButton);
+        textArea.className = "participantsTextarea";
+        textArea.name = "answer";
+        submitButton.className = "submitButton";
+        submitButton.innerHTML = "Answer";
+        submitButton.type = "button";
+        submitButton.addEventListener("click", processAnswer);
     }
     function addQuestion() {
         let createSlot = document.createElement("DIV");
@@ -155,27 +192,6 @@ var nerdquiz;
         questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
         questionDisplay.innerHTML = quiz.question[questionCounter];
         answerDisplay.innerHTML = "Answer: " + quiz.answer[questionCounter];
-    }
-    function hostQuiz() {
-        document.getElementById("nextQuestion").style.visibility = "visible";
-        quizFooter.appendChild(questionNumberDisplay);
-        QAArea.appendChild(questionDisplay);
-        QAArea.appendChild(answerDisplay);
-        displayQuestion();
-    }
-    function participateQuiz() {
-        let answerForm = document.createElement("FORM");
-        let textArea = document.createElement("TEXTAREA");
-        let submitButton = document.createElement("BUTTON");
-        QAArea.appendChild(answerForm);
-        answerForm.appendChild(textArea);
-        answerForm.appendChild(submitButton);
-        textArea.className = "participantsTextarea";
-        textArea.name = "answer";
-        submitButton.className = "submitButton";
-        submitButton.innerHTML = "Answer";
-        submitButton.type = "button";
-        submitButton.addEventListener("click", processAnswer);
     }
     function previousQuestion() {
         questionCounter--;

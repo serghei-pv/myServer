@@ -44,7 +44,7 @@ export namespace nerdquiz {
     socket.on("message", async (message) => {
       for (let key in participantsArray) {
         if (JSON.parse(message.toLocaleString()).username == participantsArray[key].username) {
-          participantsArray[key].points = JSON.parse(message.toLocaleString()).points;
+          participantsArray[key].points += JSON.parse(message.toLocaleString()).points;
         }
       }
     });
@@ -58,7 +58,7 @@ export namespace nerdquiz {
     wss.clients.forEach(async (wss) => {
       wss.send(JSON.stringify(participantsArray));
     });
-  }, 1000);
+  }, 100);
 
   async function handleRequest(_request: Http.IncomingMessage, _response: Http.ServerResponse): Promise<void> {
     console.log("Action recieved");

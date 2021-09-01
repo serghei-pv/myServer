@@ -1,5 +1,4 @@
 namespace nerdquiz {
-  let ws = new WebSocket("ws://localhost:8100/");
   let currentPage: string = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
 
   let indexMain: HTMLElement = <HTMLElement>document.getElementById("indexMain");
@@ -13,19 +12,22 @@ namespace nerdquiz {
   let removeQuestionButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("removeQuestionButton");
   let createQuiz: HTMLButtonElement = <HTMLButtonElement>document.getElementById("createQuiz");
   let quizList: HTMLUListElement = <HTMLUListElement>document.getElementById("quizList");
-  let QAArea: HTMLDivElement = <HTMLDivElement>document.getElementById("QAArea");
+  let quizTop: HTMLDivElement = <HTMLDivElement>document.getElementById("quizTop");
+  let quizBottom: HTMLDivElement = <HTMLDivElement>document.getElementById("quizBottom");
   let quizFooter: HTMLElement = <HTMLElement>document.getElementById("quizFooter");
 
   let questionDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("questionDisplay");
   let answerDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("answerDisplay");
   let questionNumberDisplay: HTMLDivElement = <HTMLDivElement>document.getElementById("questionNumberDisplay");
-  let participantsArea: HTMLDivElement = <HTMLDivElement>document.getElementById("participantsArea");
 
   let createQuestionsCounter: number = 2;
   let questionCounter: number = 0;
   let quiz = JSON.parse(localStorage.getItem("quiz"));
 
-  let host: string = "http://localhost:8100/";
+  let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+  let host: string = "https://wb-s.herokuapp.com/";
+  // let ws = new WebSocket("ws://localhost:8100/");
+  // let host: string = "http://localhost:8100/";
   let connectionVariable: string = "connected";
   let loginVariable: string = "login";
   let registerVariable: string = "register";
@@ -62,83 +64,131 @@ namespace nerdquiz {
   if (currentPage == "quiz.html") {
     if (sessionStorage.getItem("user") == quiz.user) {
       hostQuiz();
-
-      document.getElementById("previousQuestion").addEventListener("click", previousQuestion);
-      document.getElementById("nextQuestion").addEventListener("click", nextQuestion);
-
-      ws.addEventListener("message", ({ data }) => {
-        for (let i: number = 0; i < JSON.parse(data).length; i++) {
-          let particpantTable: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-          let particpantTable2: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantContainer: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-          let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantSubPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantAddPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantAnswer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-
-          let subParticipant: any = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points - 1 };
-          let addParticipant: any = { username: JSON.parse(data)[i].username, points: JSON.parse(data)[i].points + 1 };
-
-          if (i == leftMain.childNodes.length) {
-            participantName.id = "name" + i;
-            participantPoints.id = "points" + i;
-            participantAnswer.id = "answer" + i;
-            participantSubPoint.id = "subPoint" + i;
-            participantAddPoint.id = "addPoint" + i;
-
-            particpantTable.className = "particpantTable";
-            particpantTable2.className = "particpantTable2";
-
-            participantContainer.className = "participantContainer";
-            participantName.className = "participantName";
-            participantPoints.className = "participantPoints";
-            participantSubPoint.className = "participantSubPoint";
-            participantAddPoint.className = "participantAddPoint";
-            participantAnswer.className = "participantAnswer";
-
-            leftMain.appendChild(participantContainer);
-            participantContainer.appendChild(participantName);
-            participantContainer.appendChild(participantPoints);
-            // leftMain.appendChild(participantSubPoint);
-            // leftMain.appendChild(participantAddPoint);
-            // leftMain.appendChild(participantAnswer);
-
-            // participantsArea.appendChild(particpantTable);
-            // particpantTable.appendChild(particpantTable2);
-
-            // particpantTable2.appendChild(participantName);
-            // particpantTable2.appendChild(participantPoints);
-            // particpantTable2.appendChild(participantSubPoint);
-            // particpantTable2.appendChild(participantAddPoint);
-            // particpantTable.appendChild(participantAnswer);
-          }
-
-          // document.getElementById("subPoint" + i).addEventListener("click", subPoints);
-          // document.getElementById("addPoint" + i).addEventListener("click", addPoints);
-          function subPoints(): void {
-            if (JSON.parse(data)[i].points > 0) {
-              ws.send(JSON.stringify(subParticipant));
-            }
-          }
-          function addPoints(): void {
-            ws.send(JSON.stringify(addParticipant));
-          }
-
-          // participantSubPoint.innerHTML = "-";
-          // participantAddPoint.innerHTML = "+";
-          document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
-          document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
-          // document.getElementById("name" + i).title = JSON.parse(data)[i].answer;
-          // document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
-          // document.getElementById("answer" + i).title = JSON.parse(data)[i].username;
-        }
-      });
+      manageQuiz();
     }
+
     if (sessionStorage.getItem("user") != quiz.user) {
       participateQuiz();
       processParticipant();
     }
+  }
+
+  function hostQuiz(): void {
+    document.getElementById("nextQuestion").style.visibility = "visible";
+
+    quizFooter.appendChild(questionNumberDisplay);
+    quizTop.appendChild(questionDisplay);
+    quizTop.appendChild(answerDisplay);
+
+    displayQuestion();
+  }
+
+  function manageQuiz(): void {
+    document.getElementById("previousQuestion").addEventListener("click", previousQuestion);
+    document.getElementById("nextQuestion").addEventListener("click", nextQuestion);
+
+    ws.addEventListener("message", ({ data }) => {
+      for (let i: number = 0; i < JSON.parse(data).length; i++) {
+        let participantContainer: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
+        let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+        let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+        let answerContainer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+        let participantAnswerName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+        let participantAnswer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+        let participantSubPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+        let participantAddPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+
+        let subParticipant: any = { username: JSON.parse(data)[i].username, points: -1 };
+        let addParticipant: any = { username: JSON.parse(data)[i].username, points: +1 };
+
+        if (i == leftMain.childNodes.length) {
+          participantContainer.id = "participantContainer" + i;
+          participantName.id = "name" + i;
+          participantPoints.id = "points" + i;
+          answerContainer.id = "answerContainer" + i;
+          participantAnswerName.id = "answerName" + i;
+          participantAnswer.id = "answer" + i;
+          participantSubPoint.id = "subPoint" + i;
+          participantAddPoint.id = "addPoint" + i;
+
+          participantContainer.className = "participantContainer";
+          participantName.className = "participantName";
+          participantPoints.className = "participantPoints";
+          participantSubPoint.className = "participantSubPoint";
+          participantAddPoint.className = "participantAddPoint";
+          answerContainer.className = "answerContainer";
+          participantAnswerName.className = "participantAnswerName";
+          participantAnswer.className = "participantAnswer";
+
+          leftMain.appendChild(participantContainer);
+          participantContainer.appendChild(participantName);
+          participantContainer.appendChild(participantPoints);
+          answerContainer.appendChild(participantAnswerName);
+          answerContainer.appendChild(participantSubPoint);
+          answerContainer.appendChild(participantAddPoint);
+          answerContainer.appendChild(participantAnswer);
+
+          participantSubPoint.innerHTML = "-";
+          participantAddPoint.innerHTML = "+";
+
+          participantContainer.addEventListener("click", showParticipantAnswer);
+          participantSubPoint.addEventListener("click", subPoints);
+          participantAddPoint.addEventListener("click", addPoints);
+
+          function showParticipantAnswer(): void {
+            if (quizBottom.childNodes.length != 0) {
+              quizBottom.removeChild(quizBottom.lastChild);
+            }
+            quizBottom.appendChild(answerContainer);
+            participantAnswerName.innerHTML = JSON.parse(data)[i].username;
+            participantAnswer.innerHTML = JSON.parse(data)[i].answer;
+          }
+        }
+
+        function subPoints(): void {
+          ws.send(JSON.stringify(subParticipant));
+        }
+        function addPoints(): void {
+          ws.send(JSON.stringify(addParticipant));
+        }
+
+        if (
+          document.getElementById("name" + i).innerHTML != JSON.parse(data)[i].username ||
+          document.getElementById("points" + i).innerHTML != JSON.parse(data)[i].points
+        ) {
+          document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
+          document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
+        }
+
+        if (quizBottom.childNodes.length != 0) {
+          if (document.getElementById("answerName" + i) != null && document.getElementById("answer" + i) != null) {
+            if (
+              document.getElementById("answerName" + i).innerHTML != JSON.parse(data)[i].username ||
+              document.getElementById("answer" + i).innerHTML != JSON.parse(data)[i].answer
+            ) {
+              document.getElementById("answerName" + i).innerHTML = JSON.parse(data)[i].username;
+              document.getElementById("answer" + i).innerHTML = JSON.parse(data)[i].answer;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function participateQuiz(): void {
+    let answerForm: HTMLFormElement = <HTMLFormElement>document.createElement("FORM");
+    let textArea: HTMLTextAreaElement = <HTMLTextAreaElement>document.createElement("TEXTAREA");
+    let submitButton: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
+    quizTop.appendChild(answerForm);
+    answerForm.appendChild(textArea);
+    answerForm.appendChild(submitButton);
+    textArea.className = "participantsTextarea";
+    textArea.name = "answer";
+    submitButton.className = "submitButton";
+    submitButton.innerHTML = "Answer";
+    submitButton.type = "button";
+
+    submitButton.addEventListener("click", processAnswer);
   }
 
   function addQuestion(): void {
@@ -179,32 +229,6 @@ namespace nerdquiz {
     questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
     questionDisplay.innerHTML = quiz.question[questionCounter];
     answerDisplay.innerHTML = "Answer: " + quiz.answer[questionCounter];
-  }
-
-  function hostQuiz(): void {
-    document.getElementById("nextQuestion").style.visibility = "visible";
-
-    quizFooter.appendChild(questionNumberDisplay);
-    QAArea.appendChild(questionDisplay);
-    QAArea.appendChild(answerDisplay);
-
-    displayQuestion();
-  }
-
-  function participateQuiz(): void {
-    let answerForm: HTMLFormElement = <HTMLFormElement>document.createElement("FORM");
-    let textArea: HTMLTextAreaElement = <HTMLTextAreaElement>document.createElement("TEXTAREA");
-    let submitButton: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
-    QAArea.appendChild(answerForm);
-    answerForm.appendChild(textArea);
-    answerForm.appendChild(submitButton);
-    textArea.className = "participantsTextarea";
-    textArea.name = "answer";
-    submitButton.className = "submitButton";
-    submitButton.innerHTML = "Answer";
-    submitButton.type = "button";
-
-    submitButton.addEventListener("click", processAnswer);
   }
 
   function previousQuestion(): void {

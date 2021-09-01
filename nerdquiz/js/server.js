@@ -39,7 +39,7 @@ var nerdquiz;
         socket.on("message", async (message) => {
             for (let key in participantsArray) {
                 if (JSON.parse(message.toLocaleString()).username == participantsArray[key].username) {
-                    participantsArray[key].points = JSON.parse(message.toLocaleString()).points;
+                    participantsArray[key].points += JSON.parse(message.toLocaleString()).points;
                 }
             }
         });
@@ -51,7 +51,7 @@ var nerdquiz;
         wss.clients.forEach(async (wss) => {
             wss.send(JSON.stringify(participantsArray));
         });
-    }, 1000);
+    }, 100);
     async function handleRequest(_request, _response) {
         console.log("Action recieved");
         _response.setHeader("Access-Control-Allow-Origin", "*");
