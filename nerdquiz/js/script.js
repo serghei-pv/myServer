@@ -1,7 +1,6 @@
 "use strict";
 var nerdquiz;
 (function (nerdquiz) {
-    let ws = new WebSocket("ws://localhost:8100/");
     let currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
     let indexMain = document.getElementById("indexMain");
     let leftMain = document.getElementById("leftMain");
@@ -23,8 +22,10 @@ var nerdquiz;
     let createQuestionsCounter = 2;
     let questionCounter = 0;
     let quiz = JSON.parse(localStorage.getItem("quiz"));
-    let host = "http://localhost:8100/";
-    let connectionVariable = "connected";
+    let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+    let host = "https://wb-s.herokuapp.com/";
+    // let ws = new WebSocket("ws://localhost:8100/");
+    // let host: string = "http://localhost:8100/";
     let loginVariable = "login";
     let registerVariable = "register";
     let createQuizVariable = "create";
@@ -38,7 +39,6 @@ var nerdquiz;
         registerButton.addEventListener("click", processRegistration);
         loginButton.addEventListener("click", processLogin);
         if (sessionStorage.getItem("login") == "true") {
-            window.addEventListener("load", processConnection);
             for (let i = indexMain.childNodes.length; i > 0; i--) {
                 indexMain.removeChild(indexMain.lastChild);
             }
@@ -208,9 +208,6 @@ var nerdquiz;
         }
         document.getElementById("previousQuestion").style.visibility = "visible";
         displayQuestion();
-    }
-    function processConnection() {
-        processRequest("ws://localhost:8100/", connectionVariable);
     }
     function processRegistration() {
         processRequest(host, registerVariable);
