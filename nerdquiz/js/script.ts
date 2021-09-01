@@ -255,7 +255,8 @@ namespace nerdquiz {
   }
 
   function processConnection(): void {
-    processRequest("ws://localhost:8100/", connectionVariable);
+    processRequest("wss://wb-s.herokuapp.com/", connectionVariable);
+    // processRequest("ws://localhost:8100/", connectionVariable);
   }
   function processRegistration(): void {
     processRequest(host, registerVariable);
