@@ -26,9 +26,6 @@ namespace nerdquiz {
 
   let ws = new WebSocket("wss://wb-s.herokuapp.com/");
   let host: string = "https://wb-s.herokuapp.com/";
-  // let ws = new WebSocket("ws://localhost:8100/");
-  // let host: string = "http://localhost:8100/";
-  let connectionVariable: string = "connected";
   let loginVariable: string = "login";
   let registerVariable: string = "register";
   let createQuizVariable: string = "create";
@@ -44,7 +41,6 @@ namespace nerdquiz {
     registerButton.addEventListener("click", processRegistration);
     loginButton.addEventListener("click", processLogin);
     if (sessionStorage.getItem("login") == "true") {
-      window.addEventListener("load", processConnection);
       for (let i: number = indexMain.childNodes.length; i > 0; i--) {
         indexMain.removeChild(indexMain.lastChild);
       }
@@ -252,11 +248,6 @@ namespace nerdquiz {
     document.getElementById("previousQuestion").style.visibility = "visible";
 
     displayQuestion();
-  }
-
-  function processConnection(): void {
-    processRequest("wss://wb-s.herokuapp.com/", connectionVariable);
-    // processRequest("ws://localhost:8100/", connectionVariable);
   }
   function processRegistration(): void {
     processRequest(host, registerVariable);
