@@ -50,8 +50,8 @@ li {
   padding-top: 1%;
   padding-bottom: 1%;
   -moz-user-select: none;
-  -khtml-user-select: none;
   -webkit-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 
@@ -85,12 +85,13 @@ li {
 .mainCenter {
   order: 2;
   height: 100%;
-  width: 64%;
+  width: 62%;
   margin-left: 2%;
   margin-right: 2%;
 }
 
 .leftMain {
+  position: -webkit-sticky;
   position: sticky;
   top: 20%;
   order: 1;
@@ -116,6 +117,7 @@ li {
 }
 
 .rightMain {
+  position: -webkit-sticky;
   position: sticky;
   top: 20%;
   order: 3;
@@ -189,6 +191,8 @@ textarea:focus {
   order: 2;
 }
 
+#previousQuestion,
+#nextQuestion,
 #addQuestionButton,
 #removeQuestionButton,
 #saveQuiz,
@@ -203,20 +207,6 @@ textarea:focus {
   cursor: pointer;
 
   background-color: #262626;
-  -webkit-transition: background-color 500ms;
-  -ms-transition: background-color 500ms;
-  transition: background-color 500ms;
-}
-
-#addQuestionButton:hover,
-#removeQuestionButton:hover,
-#saveQuiz:hover,
-#createQuiz:hover,
-.lrButton:hover {
-  background-color: #737373;
-  -webkit-transition: background-color 500ms;
-  -ms-transition: background-color 500ms;
-  transition: background-color 500ms;
 }
 
 #addQuestionButton,
@@ -246,10 +236,9 @@ textarea:focus {
   width: 100%;
   height: 30px;
   border: 2px solid black;
-  background: #00000020;
-  border-color: #7d2906;
   border-radius: 5px 5px 5px 5px;
   color: white;
+  background-color: #262626;
   font-size: 15px;
 }
 
@@ -263,15 +252,10 @@ textarea:focus {
   height: 50px;
   margin-top: 5%;
   border: 2px solid black;
-  border-color: #7d2906;
   border-radius: 5px 5px 5px 5px;
   color: white;
   cursor: pointer;
-
-  background-color: #00000020;
-  -webkit-transition: background-color 500ms;
-  -ms-transition: background-color 500ms;
-  transition: background-color 500ms;
+  background-color: #262626;
 }
 
 .quizIDForm {
@@ -349,7 +333,7 @@ textarea:focus {
   margin: 5%;
   margin-top: 0;
   text-align: left;
-  width: 100%;
+  width: 90%;
   border-bottom: 2px solid rgba(255, 255, 255, 0.199);
 }
 
@@ -381,41 +365,46 @@ textarea:focus {
 
 #quizFooter {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 #previousQuestion {
   order: 1;
   font-size: 20px;
-  margin-left: 2%;
+  margin-right: 5%;
   visibility: hidden;
 }
 
 #questionNumberDisplay {
   order: 2;
-  font-size: 60px;
-  text-align: center;
+  font-size: 40px;
+  margin-bottom: 10px;
 }
 
 #nextQuestion {
   order: 3;
   font-size: 20px;
-  margin-right: 2%;
+  margin-left: 5%;
   visibility: hidden;
+}
+
+.answerForm {
+  text-align: center;
 }
 
 .participantsTextarea {
   margin-top: 100px;
-  width: 769px;
-  height: 100px;
+  height: 20px;
+  width: 80%;
+}
+
+.lastAnswer {
+  text-align: center;
 }
 
 .submitButton {
   margin-top: 50px;
-  margin-left: 193px;
-  margin-right: 193px;
-  width: 386px;
-  border-bottom: 2px solid #7d2906;
+  width: 30%;
   border-radius: 5px 5px 5px 5px;
 }
 
@@ -442,8 +431,8 @@ textarea:focus {
   margin-right: 2%;
 
   -moz-user-select: none;
-  -khtml-user-select: none;
   -webkit-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 
@@ -478,4 +467,39 @@ textarea:focus {
 
 .participantPoints {
   float: right;
+}
+
+.alertMessage {
+  float: right;
+  color: rgb(255, 101, 101);
+
+  animation: fadeOut forwards 3s;
+  -webkit-animation: fadeOut forwards 3s;
+  -moz-animation: fadeOut forwards 3s;
+  -o-animation: fadeOut forwards 3s;
+  -ms-animation: fadeOut forwards 3s;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }

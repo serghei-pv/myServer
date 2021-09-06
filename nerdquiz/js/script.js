@@ -2,16 +2,18 @@
 var nerdquiz;
 (function (nerdquiz) {
     let currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
+    let indexMenu = document.getElementById("indexMenu");
+    let menuCenter = document.getElementById("menuCenter");
     let indexMain = document.getElementById("indexMain");
     let leftMain = document.getElementById("leftMain");
-    let rightMain = document.getElementById("rightMain");
-    let indexMenu = document.getElementById("indexMenu");
+    // let rightMain: HTMLUListElement = <HTMLUListElement>document.getElementById("rightMain");
     let registerButton = document.getElementById("registerButton");
     let loginButton = document.getElementById("loginButton");
     let createQuizForm = document.getElementById("createQuizForm");
     let addQuestionButton = document.getElementById("addQuestionButton");
     let removeQuestionButton = document.getElementById("removeQuestionButton");
     let createQuiz = document.getElementById("createQuiz");
+    let saveQuiz = document.getElementById("saveQuiz");
     let quizList = document.getElementById("quizList");
     let quizTop = document.getElementById("quizTop");
     let quizBottom = document.getElementById("quizBottom");
@@ -19,16 +21,20 @@ var nerdquiz;
     let questionDisplay = document.getElementById("questionDisplay");
     let answerDisplay = document.getElementById("answerDisplay");
     let questionNumberDisplay = document.getElementById("questionNumberDisplay");
-    let createQuestionsCounter = 2;
+    let createQuestionsCounter = 1;
     let questionCounter = 0;
+    let heightLimit = 50;
     let quiz = JSON.parse(localStorage.getItem("quiz"));
-    let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-    let host = "https://wb-s.herokuapp.com/";
-    // let ws = new WebSocket("ws://localhost:8100/");
-    // let host: string = "http://localhost:8100/";
+    let filledTextAreaArray = new Array();
+    // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+    // let host: string = "https://wb-s.herokuapp.com/";
+    let ws = new WebSocket("ws://localhost:8100/");
+    let host = "http://localhost:8100/";
     let loginVariable = "login";
     let registerVariable = "register";
     let createQuizVariable = "create";
+    let saveQuizVariable = "save";
+    let loadQuizVariable = "load";
     let quizListVariable = "quizList";
     let participantVariable = "participant";
     let answerVariable = "answer";
@@ -48,9 +54,11 @@ var nerdquiz;
         window.addEventListener("load", processQuizList);
     }
     if (currentPage == "create.html") {
+        window.addEventListener("load", processLoadQuiz);
         addQuestionButton.addEventListener("click", addQuestion);
         removeQuestionButton.addEventListener("click", removeQuestion);
-        createQuiz.addEventListener("click", processQuizCreation);
+        createQuiz.addEventListener("click", processCreateQuiz);
+        saveQuiz.addEventListener("click", processSaveQuiz);
     }
     if (currentPage == "quiz.html") {
         if (sessionStorage.getItem("user") == quiz.user) {
@@ -152,12 +160,24 @@ var nerdquiz;
         quizTop.appendChild(answerForm);
         answerForm.appendChild(textArea);
         answerForm.appendChild(submitButton);
+        answerForm.className = "answerForm";
         textArea.className = "participantsTextarea";
-        textArea.name = "answer";
         submitButton.className = "submitButton";
+        textArea.name = "answer";
         submitButton.innerHTML = "Answer";
         submitButton.type = "button";
+        textArea.addEventListener("input", autoExpand);
         submitButton.addEventListener("click", processAnswer);
+        submitButton.addEventListener("click", appendLastAnswer);
+        function appendLastAnswer() {
+            let lastAnswer = document.createElement("P");
+            quizBottom.insertBefore(lastAnswer, quizBottom.firstChild);
+            lastAnswer.className = "lastAnswer";
+            lastAnswer.innerHTML = textArea.value;
+            if (quizBottom.childNodes.length > 3) {
+                quizBottom.removeChild(quizBottom.lastChild);
+            }
+        }
     }
     function addQuestion() {
         let createSlot = document.createElement("DIV");
@@ -169,14 +189,20 @@ var nerdquiz;
         createSlot.className = "createSlot";
         questionArea.className = "questionArea";
         answerArea.className = "answerArea";
+        questionArea.id = "questionArea" + createQuestionsCounter;
+        answerArea.id = "answerArea" + createQuestionsCounter;
         questionArea.setAttribute("name", "question");
         answerArea.setAttribute("name", "answer");
         questionArea.placeholder = "Question:";
         answerArea.placeholder = "Answer:";
+        filledTextAreaArray.push(questionArea);
+        filledTextAreaArray.push(answerArea);
         createQuizForm.appendChild(createSlot);
         createSlot.appendChild(numberArea);
         createSlot.appendChild(questionArea);
         createSlot.appendChild(answerArea);
+        questionArea.addEventListener("input", autoExpand);
+        answerArea.addEventListener("input", autoExpand);
         window.scrollTo(0, document.body.scrollHeight);
         createQuestionsCounter++;
     }
@@ -184,6 +210,7 @@ var nerdquiz;
         if (createQuestionsCounter > 2) {
             for (let i = 0; i < 1; i++) {
                 createQuizForm.removeChild(createQuizForm.lastChild);
+                filledTextAreaArray.length -= 2;
             }
             createQuestionsCounter--;
         }
@@ -209,14 +236,42 @@ var nerdquiz;
         document.getElementById("previousQuestion").style.visibility = "visible";
         displayQuestion();
     }
+    function autoExpand() {
+        document.querySelector("textarea").style.height = "";
+        document.querySelector("textarea").style.height = Math.min(document.querySelector("textarea").scrollHeight, heightLimit) + "px";
+    }
     function processRegistration() {
         processRequest(host, registerVariable);
     }
     function processLogin() {
         processRequest(host, loginVariable);
     }
-    function processQuizCreation() {
-        processRequest(host, createQuizVariable);
+    function processCreateQuiz() {
+        let filledTextArea = 0;
+        for (let i = 0; i < filledTextAreaArray.length; i++) {
+            if (filledTextAreaArray[i].value != "") {
+                filledTextArea++;
+            }
+        }
+        if (filledTextAreaArray.length == filledTextArea) {
+            processRequest(host, createQuizVariable);
+            filledTextAreaArray.length = 0;
+        }
+        else {
+            let alertMessage = document.createElement("SPAN");
+            alertMessage.className = "alertMessage";
+            alertMessage.innerHTML = "Fill Out Everything!";
+            menuCenter.appendChild(alertMessage);
+            if (menuCenter.childNodes.length > 1) {
+                menuCenter.removeChild(menuCenter.firstChild);
+            }
+        }
+    }
+    function processSaveQuiz() {
+        processRequest(host, saveQuizVariable);
+    }
+    function processLoadQuiz() {
+        processRequest(host, loadQuizVariable);
     }
     function processQuizList() {
         processRequest(host, quizListVariable);
@@ -254,42 +309,65 @@ var nerdquiz;
             }
         }
         if (_pathname == createQuizVariable) {
-            _url += createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user");
+            _url += createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=true";
             response = await fetch(_url);
             textData = await response.text();
-            console.log(textData);
             window.location.href = "../pages/create.html";
+        }
+        if (_pathname == saveQuizVariable) {
+            _url += saveQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=false";
+            response = await fetch(_url);
+            textData = await response.text();
+        }
+        if (_pathname == loadQuizVariable) {
+            _url += loadQuizVariable + "?" + "&user=" + sessionStorage.getItem("user");
+            response = await fetch(_url);
+            let quiz = await response.json();
+            if (quiz != "0") {
+                for (let i = 1; i <= quiz.answer.length; i++) {
+                    addQuestion();
+                    let localQuestionArea = document.getElementById("questionArea" + i);
+                    let localAnswerArea = document.getElementById("answerArea" + i);
+                    localQuestionArea.value = quiz.question[i - 1];
+                    localAnswerArea.value = quiz.answer[i - 1];
+                }
+            }
+            else {
+                addQuestion();
+            }
         }
         if (_pathname == quizListVariable) {
             _url += quizListVariable + "?";
             response = await fetch(_url);
             let quizDataArray = await response.json();
             for (let i = 0; i < quizDataArray.length; i++) {
-                let quizRow = document.createElement("TR");
-                let quizNumber = document.createElement("TD");
-                let quizID = document.createElement("TD");
-                let quizQuestionAmount = document.createElement("TD");
-                let quizSubmitter = document.createElement("TD");
-                quizRow.addEventListener("click", loadQuiz);
-                quizRow.className = "quizRow";
-                quizNumber.className = "quizNumber";
-                quizID.className = "quizID";
-                quizQuestionAmount.className = "quizQuestionAmount";
-                quizSubmitter.className = "quizSubmitter";
-                quizNumber.innerHTML = JSON.stringify(i + 1);
-                quizID.innerHTML = quizDataArray[i]._id;
-                quizQuestionAmount.innerHTML = quizDataArray[i].question.length;
-                quizSubmitter.innerHTML = quizDataArray[i].user;
-                quizList.appendChild(quizRow);
-                quizRow.appendChild(quizNumber);
-                quizRow.appendChild(quizID);
-                quizRow.appendChild(quizQuestionAmount);
-                quizRow.appendChild(quizSubmitter);
-                function loadQuiz() {
-                    if (sessionStorage.getItem("user") == quizDataArray[i].user) {
-                        localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
+                if (quizDataArray[i].ready == "true") {
+                    let quizRow = document.createElement("TR");
+                    let quizNumber = document.createElement("TD");
+                    let quizID = document.createElement("TD");
+                    let quizQuestionAmount = document.createElement("TD");
+                    let quizSubmitter = document.createElement("TD");
+                    quizRow.addEventListener("click", loadQuiz);
+                    quizRow.className = "quizRow";
+                    quizNumber.className = "quizNumber";
+                    quizID.className = "quizID";
+                    quizQuestionAmount.className = "quizQuestionAmount";
+                    quizSubmitter.className = "quizSubmitter";
+                    quizNumber.innerHTML = JSON.stringify(i + 1);
+                    quizID.innerHTML = quizDataArray[i]._id;
+                    quizQuestionAmount.innerHTML = quizDataArray[i].question.length;
+                    quizSubmitter.innerHTML = quizDataArray[i].user;
+                    quizList.appendChild(quizRow);
+                    quizRow.appendChild(quizNumber);
+                    quizRow.appendChild(quizID);
+                    quizRow.appendChild(quizQuestionAmount);
+                    quizRow.appendChild(quizSubmitter);
+                    function loadQuiz() {
+                        if (sessionStorage.getItem("user") == quizDataArray[i].user) {
+                            localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
+                        }
+                        window.location.href = "../pages/quiz.html";
                     }
-                    window.location.href = "../pages/quiz.html";
                 }
             }
         }

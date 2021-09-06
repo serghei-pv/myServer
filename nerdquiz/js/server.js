@@ -101,7 +101,41 @@ var nerdquiz;
                 }
             }
             if (url.pathname == "/create") {
-                quiz.insertOne(url.query);
+                let status = 0;
+                for (let key in allQuizzes) {
+                    if (allQuizzes[key].user == url.query.user && allQuizzes[key].ready == "false") {
+                        quiz.updateOne({ _id: allQuizzes[key]._id }, { $set: { question: url.query.question, ready: url.query.ready } });
+                        status = 1;
+                    }
+                }
+                if (status == 0) {
+                    quiz.insertOne(url.query);
+                }
+            }
+            if (url.pathname == "/save") {
+                let status = 0;
+                for (let key in allQuizzes) {
+                    if (allQuizzes[key].user == url.query.user && allQuizzes[key].ready == "false") {
+                        quiz.updateOne({ _id: allQuizzes[key]._id }, { $set: { question: url.query.question, answer: url.query.answer } });
+                        status = 1;
+                    }
+                }
+                if (status == 0) {
+                    quiz.insertOne(url.query);
+                }
+            }
+            if (url.pathname == "/load") {
+                _response.setHeader("content-type", "application/json");
+                let localQuiz = null;
+                for (let key in allQuizzes) {
+                    if (allQuizzes[key].user == url.query.user && allQuizzes[key].ready == "false") {
+                        localQuiz = allQuizzes[key];
+                        _response.write(JSON.stringify(localQuiz));
+                    }
+                }
+                if (localQuiz == null) {
+                    _response.write("0");
+                }
             }
             if (url.pathname == "/quizList") {
                 _response.setHeader("content-type", "application/json");

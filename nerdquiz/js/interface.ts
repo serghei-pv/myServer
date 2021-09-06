@@ -11,6 +11,7 @@ export interface Quiz {
   question: string[];
   answer: string[];
   user: string;
+  ready: string;
 }
 
 export interface Participant {
