@@ -164,9 +164,10 @@ var nerdquiz;
                     }
                 }
             }
-            if (url.pathname == "/unlock") {
+            if (url.pathname == "/continue") {
                 for (let key in participantsArray) {
                     participantsArray[key].lock = "false";
+                    participantsArray[key].answer = "No answer yet";
                 }
             }
             _response.end();

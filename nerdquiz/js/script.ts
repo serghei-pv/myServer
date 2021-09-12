@@ -25,10 +25,10 @@ namespace nerdquiz {
   let heightLimit: number = 50;
   let filledTextAreaArray: HTMLTextAreaElement[] = new Array();
 
-  // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-  // let host: string = "https://wb-s.herokuapp.com/";
-  let ws = new WebSocket("ws://localhost:8100/");
-  let host: string = "http://localhost:8100/";
+  let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+  let host: string = "https://wb-s.herokuapp.com/";
+  // let ws = new WebSocket("ws://localhost:8100/");
+  // let host: string = "http://localhost:8100/";
   let loginVariable: string = "login";
   let registerVariable: string = "register";
   let createQuizVariable: string = "create";
@@ -37,7 +37,7 @@ namespace nerdquiz {
   let quizListVariable: string = "quizList";
   let participantVariable: string = "participant";
   let answerVariable: string = "answer";
-  let unlockButtonsVariable: string = "unlock";
+  let continueVariable: string = "continue";
 
   if (sessionStorage.getItem("login") != "true") {
     indexMenu.style.visibility = "hidden";
@@ -66,20 +66,25 @@ namespace nerdquiz {
   }
 
   if (currentPage == "quiz.html") {
-    if (sessionStorage.getItem("user") == JSON.parse(localStorage.getItem("quiz")).user) {
+    if (sessionStorage.getItem("quiz") != null) {
       hostQuiz();
       manageQuiz();
     }
 
-    if (sessionStorage.getItem("user") != JSON.parse(localStorage.getItem("quiz")).user) {
+    if (sessionStorage.getItem("quiz") == null) {
       participateQuiz();
       processParticipant();
     }
+
+    let roomNumber: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+    roomNumber.innerHTML = sessionStorage.getItem("roomNumber");
+    roomNumber.id = "roomNumber";
+    menuCenter.appendChild(roomNumber);
   }
 
   function hostQuiz(): void {
     document.getElementById("nextQuestion").style.visibility = "visible";
-    document.getElementById("nextQuestion").addEventListener("click", processUnlockButtons);
+    document.getElementById("nextQuestion").addEventListener("click", processContinue);
 
     quizFooter.appendChild(questionNumberDisplay);
     quizTop.appendChild(questionDisplay);
@@ -165,6 +170,12 @@ namespace nerdquiz {
           document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
         }
 
+        if (JSON.parse(data)[i].answer != "No answer yet") {
+          document.getElementById("name" + i).classList.add("blue");
+        } else {
+          document.getElementById("name" + i).classList.remove("blue");
+        }
+
         if (quizBottom.childNodes.length != 0) {
           if (document.getElementById("answerName" + i) != null && document.getElementById("answer" + i) != null) {
             if (
@@ -204,8 +215,14 @@ namespace nerdquiz {
 
     ws.addEventListener("message", ({ data }) => {
       for (let i: number = 0; i < JSON.parse(data).length; i++) {
-        if (JSON.parse(data)[i].username == sessionStorage.getItem("user") && points.innerHTML != JSON.parse(data)[i].points) {
-          points.innerHTML = JSON.parse(data)[i].points + "/" + localStorage.getItem("quizLength");
+        if (JSON.parse(data)[i].username == sessionStorage.getItem("user")) {
+          if (points.innerHTML != JSON.parse(data)[i].points) {
+            points.innerHTML = JSON.parse(data)[i].points + "/" + sessionStorage.getItem("quizLength");
+          }
+          if (JSON.parse(data)[i].points == 0) {
+            points.innerHTML = "0" + "/" + sessionStorage.getItem("quizLength");
+          }
+
           if (JSON.parse(data)[i].lock == "true") {
             document.getElementById("answerButton").classList.add("lock");
           }
@@ -262,8 +279,8 @@ namespace nerdquiz {
 
   function displayQuestion(): void {
     questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
-    questionDisplay.innerHTML = JSON.parse(localStorage.getItem("quiz")).question[questionCounter];
-    answerDisplay.innerHTML = "Answer: " + JSON.parse(localStorage.getItem("quiz")).answer[questionCounter];
+    questionDisplay.innerHTML = JSON.parse(sessionStorage.getItem("quiz")).question[questionCounter];
+    answerDisplay.innerHTML = "Answer: " + JSON.parse(sessionStorage.getItem("quiz")).answer[questionCounter];
   }
 
   function previousQuestion(): void {
@@ -280,7 +297,7 @@ namespace nerdquiz {
   function nextQuestion(): void {
     questionCounter++;
 
-    if (JSON.parse(localStorage.getItem("quiz")).question[questionCounter + 1] == undefined) {
+    if (JSON.parse(sessionStorage.getItem("quiz")).question[questionCounter + 1] == undefined) {
       document.getElementById("nextQuestion").style.visibility = "hidden";
     }
 
@@ -338,8 +355,9 @@ namespace nerdquiz {
   function processAnswer(): void {
     processRequest(host, answerVariable);
   }
-  function processUnlockButtons(): void {
-    processRequest(host, unlockButtonsVariable);
+  function processContinue(): void {
+    processRequest(host, continueVariable);
+    quizBottom.innerHTML = "";
   }
 
   async function processRequest(_url: RequestInfo, _pathname: string): Promise<void> {
@@ -438,10 +456,11 @@ namespace nerdquiz {
 
           function loadQuiz(): void {
             if (sessionStorage.getItem("user") == quizDataArray[i].user) {
-              localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
+              sessionStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
             } else {
-              localStorage.setItem("quizLength", quizDataArray[i].question.length);
+              sessionStorage.setItem("quizLength", quizDataArray[i].question.length);
             }
+            sessionStorage.setItem("roomNumber", quizDataArray[i]._id);
             window.location.href = "../pages/quiz.html";
           }
         }
@@ -458,8 +477,8 @@ namespace nerdquiz {
       response = await fetch(_url);
     }
 
-    if (_pathname == unlockButtonsVariable) {
-      _url += unlockButtonsVariable + "?";
+    if (_pathname == continueVariable) {
+      _url += continueVariable + "?";
       response = await fetch(_url);
     }
   }

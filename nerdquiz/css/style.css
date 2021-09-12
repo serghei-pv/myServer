@@ -1,3 +1,8 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
 html {
   background: #171719;
   height: 100%;
@@ -49,10 +54,6 @@ li {
   width: 100%;
   padding-top: 1%;
   padding-bottom: 1%;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }
 
 .menu,
@@ -489,6 +490,15 @@ textarea:focus {
   -moz-animation: fadeOut forwards 3s;
   -o-animation: fadeOut forwards 3s;
   -ms-animation: fadeOut forwards 3s;
+}
+
+#roomNumber {
+  float: right;
+  font-size: 25px;
+}
+
+.blue {
+  color: rgb(0, 130, 252);
 }
 
 @keyframes fadeOut {

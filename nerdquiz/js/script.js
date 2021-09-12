@@ -24,10 +24,10 @@ var nerdquiz;
     let questionCounter = 0;
     let heightLimit = 50;
     let filledTextAreaArray = new Array();
-    // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-    // let host: string = "https://wb-s.herokuapp.com/";
-    let ws = new WebSocket("ws://localhost:8100/");
-    let host = "http://localhost:8100/";
+    let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+    let host = "https://wb-s.herokuapp.com/";
+    // let ws = new WebSocket("ws://localhost:8100/");
+    // let host: string = "http://localhost:8100/";
     let loginVariable = "login";
     let registerVariable = "register";
     let createQuizVariable = "create";
@@ -36,7 +36,7 @@ var nerdquiz;
     let quizListVariable = "quizList";
     let participantVariable = "participant";
     let answerVariable = "answer";
-    let unlockButtonsVariable = "unlock";
+    let continueVariable = "continue";
     if (sessionStorage.getItem("login") != "true") {
         indexMenu.style.visibility = "hidden";
     }
@@ -60,18 +60,22 @@ var nerdquiz;
         saveQuiz.addEventListener("click", processSaveQuiz);
     }
     if (currentPage == "quiz.html") {
-        if (sessionStorage.getItem("user") == JSON.parse(localStorage.getItem("quiz")).user) {
+        if (sessionStorage.getItem("quiz") != null) {
             hostQuiz();
             manageQuiz();
         }
-        if (sessionStorage.getItem("user") != JSON.parse(localStorage.getItem("quiz")).user) {
+        if (sessionStorage.getItem("quiz") == null) {
             participateQuiz();
             processParticipant();
         }
+        let roomNumber = document.createElement("P");
+        roomNumber.innerHTML = sessionStorage.getItem("roomNumber");
+        roomNumber.id = "roomNumber";
+        menuCenter.appendChild(roomNumber);
     }
     function hostQuiz() {
         document.getElementById("nextQuestion").style.visibility = "visible";
-        document.getElementById("nextQuestion").addEventListener("click", processUnlockButtons);
+        document.getElementById("nextQuestion").addEventListener("click", processContinue);
         quizFooter.appendChild(questionNumberDisplay);
         quizTop.appendChild(questionDisplay);
         quizTop.appendChild(answerDisplay);
@@ -141,6 +145,12 @@ var nerdquiz;
                     document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
                     document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
                 }
+                if (JSON.parse(data)[i].answer != "No answer yet") {
+                    document.getElementById("name" + i).classList.add("blue");
+                }
+                else {
+                    document.getElementById("name" + i).classList.remove("blue");
+                }
                 if (quizBottom.childNodes.length != 0) {
                     if (document.getElementById("answerName" + i) != null && document.getElementById("answer" + i) != null) {
                         if (document.getElementById("answerName" + i).innerHTML != JSON.parse(data)[i].username ||
@@ -174,8 +184,13 @@ var nerdquiz;
         submitButton.addEventListener("click", processAnswer);
         ws.addEventListener("message", ({ data }) => {
             for (let i = 0; i < JSON.parse(data).length; i++) {
-                if (JSON.parse(data)[i].username == sessionStorage.getItem("user") && points.innerHTML != JSON.parse(data)[i].points) {
-                    points.innerHTML = JSON.parse(data)[i].points + "/" + localStorage.getItem("quizLength");
+                if (JSON.parse(data)[i].username == sessionStorage.getItem("user")) {
+                    if (points.innerHTML != JSON.parse(data)[i].points) {
+                        points.innerHTML = JSON.parse(data)[i].points + "/" + sessionStorage.getItem("quizLength");
+                    }
+                    if (JSON.parse(data)[i].points == 0) {
+                        points.innerHTML = "0" + "/" + sessionStorage.getItem("quizLength");
+                    }
                     if (JSON.parse(data)[i].lock == "true") {
                         document.getElementById("answerButton").classList.add("lock");
                     }
@@ -224,8 +239,8 @@ var nerdquiz;
     }
     function displayQuestion() {
         questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
-        questionDisplay.innerHTML = JSON.parse(localStorage.getItem("quiz")).question[questionCounter];
-        answerDisplay.innerHTML = "Answer: " + JSON.parse(localStorage.getItem("quiz")).answer[questionCounter];
+        questionDisplay.innerHTML = JSON.parse(sessionStorage.getItem("quiz")).question[questionCounter];
+        answerDisplay.innerHTML = "Answer: " + JSON.parse(sessionStorage.getItem("quiz")).answer[questionCounter];
     }
     function previousQuestion() {
         questionCounter--;
@@ -237,7 +252,7 @@ var nerdquiz;
     }
     function nextQuestion() {
         questionCounter++;
-        if (JSON.parse(localStorage.getItem("quiz")).question[questionCounter + 1] == undefined) {
+        if (JSON.parse(sessionStorage.getItem("quiz")).question[questionCounter + 1] == undefined) {
             document.getElementById("nextQuestion").style.visibility = "hidden";
         }
         document.getElementById("previousQuestion").style.visibility = "visible";
@@ -289,8 +304,9 @@ var nerdquiz;
     function processAnswer() {
         processRequest(host, answerVariable);
     }
-    function processUnlockButtons() {
-        processRequest(host, unlockButtonsVariable);
+    function processContinue() {
+        processRequest(host, continueVariable);
+        quizBottom.innerHTML = "";
     }
     async function processRequest(_url, _pathname) {
         let formData = new FormData(document.forms[0]);
@@ -374,11 +390,12 @@ var nerdquiz;
                     quizRow.appendChild(quizSubmitter);
                     function loadQuiz() {
                         if (sessionStorage.getItem("user") == quizDataArray[i].user) {
-                            localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
+                            sessionStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
                         }
                         else {
-                            localStorage.setItem("quizLength", quizDataArray[i].question.length);
+                            sessionStorage.setItem("quizLength", quizDataArray[i].question.length);
                         }
+                        sessionStorage.setItem("roomNumber", quizDataArray[i]._id);
                         window.location.href = "../pages/quiz.html";
                     }
                 }
@@ -392,8 +409,8 @@ var nerdquiz;
             _url += answerVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
             response = await fetch(_url);
         }
-        if (_pathname == unlockButtonsVariable) {
-            _url += unlockButtonsVariable + "?";
+        if (_pathname == continueVariable) {
+            _url += continueVariable + "?";
             response = await fetch(_url);
         }
     }
