@@ -408,6 +408,17 @@ textarea:focus {
   border-radius: 5px 5px 5px 5px;
 }
 
+#answerPoints {
+  text-align: center;
+  font-size: 50px;
+  width: 90%;
+  margin: 0;
+}
+
+.lock {
+  pointer-events: none;
+}
+
 #participantsArea {
   order: 2;
   margin: 5%;

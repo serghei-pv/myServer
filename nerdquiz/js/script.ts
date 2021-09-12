@@ -5,7 +5,6 @@ namespace nerdquiz {
   let menuCenter: HTMLElement = <HTMLElement>document.getElementById("menuCenter");
   let indexMain: HTMLElement = <HTMLElement>document.getElementById("indexMain");
   let leftMain: HTMLUListElement = <HTMLUListElement>document.getElementById("leftMain");
-  // let rightMain: HTMLUListElement = <HTMLUListElement>document.getElementById("rightMain");
   let registerButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("registerButton");
   let loginButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("loginButton");
   let createQuizForm: HTMLFormElement = <HTMLFormElement>document.getElementById("createQuizForm");
@@ -24,7 +23,6 @@ namespace nerdquiz {
   let createQuestionsCounter: number = 1;
   let questionCounter: number = 0;
   let heightLimit: number = 50;
-  let quiz = JSON.parse(localStorage.getItem("quiz"));
   let filledTextAreaArray: HTMLTextAreaElement[] = new Array();
 
   // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
@@ -39,6 +37,7 @@ namespace nerdquiz {
   let quizListVariable: string = "quizList";
   let participantVariable: string = "participant";
   let answerVariable: string = "answer";
+  let unlockButtonsVariable: string = "unlock";
 
   if (sessionStorage.getItem("login") != "true") {
     indexMenu.style.visibility = "hidden";
@@ -67,12 +66,12 @@ namespace nerdquiz {
   }
 
   if (currentPage == "quiz.html") {
-    if (sessionStorage.getItem("user") == quiz.user) {
+    if (sessionStorage.getItem("user") == JSON.parse(localStorage.getItem("quiz")).user) {
       hostQuiz();
       manageQuiz();
     }
 
-    if (sessionStorage.getItem("user") != quiz.user) {
+    if (sessionStorage.getItem("user") != JSON.parse(localStorage.getItem("quiz")).user) {
       participateQuiz();
       processParticipant();
     }
@@ -80,6 +79,7 @@ namespace nerdquiz {
 
   function hostQuiz(): void {
     document.getElementById("nextQuestion").style.visibility = "visible";
+    document.getElementById("nextQuestion").addEventListener("click", processUnlockButtons);
 
     quizFooter.appendChild(questionNumberDisplay);
     quizTop.appendChild(questionDisplay);
@@ -184,31 +184,37 @@ namespace nerdquiz {
     let answerForm: HTMLFormElement = <HTMLFormElement>document.createElement("FORM");
     let textArea: HTMLTextAreaElement = <HTMLTextAreaElement>document.createElement("TEXTAREA");
     let submitButton: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
+    let points: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
     quizTop.appendChild(answerForm);
     answerForm.appendChild(textArea);
     answerForm.appendChild(submitButton);
+    quizBottom.appendChild(points);
     answerForm.className = "answerForm";
     textArea.className = "participantsTextarea";
     submitButton.className = "submitButton";
+    submitButton.id = "answerButton";
     textArea.name = "answer";
     submitButton.innerHTML = "Answer";
     submitButton.type = "button";
+    points.id = "answerPoints";
 
     textArea.addEventListener("input", autoExpand);
 
     submitButton.addEventListener("click", processAnswer);
-    submitButton.addEventListener("click", appendLastAnswer);
 
-    function appendLastAnswer(): void {
-      let lastAnswer: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-      quizBottom.insertBefore(lastAnswer, quizBottom.firstChild);
-      lastAnswer.className = "lastAnswer";
-      lastAnswer.innerHTML = textArea.value;
-
-      if (quizBottom.childNodes.length > 3) {
-        quizBottom.removeChild(quizBottom.lastChild);
+    ws.addEventListener("message", ({ data }) => {
+      for (let i: number = 0; i < JSON.parse(data).length; i++) {
+        if (JSON.parse(data)[i].username == sessionStorage.getItem("user") && points.innerHTML != JSON.parse(data)[i].points) {
+          points.innerHTML = JSON.parse(data)[i].points + "/" + localStorage.getItem("quizLength");
+          if (JSON.parse(data)[i].lock == "true") {
+            document.getElementById("answerButton").classList.add("lock");
+          }
+          if (JSON.parse(data)[i].lock == "false") {
+            document.getElementById("answerButton").classList.remove("lock");
+          }
+        }
       }
-    }
+    });
   }
 
   function addQuestion(): void {
@@ -256,8 +262,8 @@ namespace nerdquiz {
 
   function displayQuestion(): void {
     questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
-    questionDisplay.innerHTML = quiz.question[questionCounter];
-    answerDisplay.innerHTML = "Answer: " + quiz.answer[questionCounter];
+    questionDisplay.innerHTML = JSON.parse(localStorage.getItem("quiz")).question[questionCounter];
+    answerDisplay.innerHTML = "Answer: " + JSON.parse(localStorage.getItem("quiz")).answer[questionCounter];
   }
 
   function previousQuestion(): void {
@@ -274,7 +280,7 @@ namespace nerdquiz {
   function nextQuestion(): void {
     questionCounter++;
 
-    if (quiz.question[questionCounter + 1] == undefined) {
+    if (JSON.parse(localStorage.getItem("quiz")).question[questionCounter + 1] == undefined) {
       document.getElementById("nextQuestion").style.visibility = "hidden";
     }
 
@@ -331,6 +337,9 @@ namespace nerdquiz {
   }
   function processAnswer(): void {
     processRequest(host, answerVariable);
+  }
+  function processUnlockButtons(): void {
+    processRequest(host, unlockButtonsVariable);
   }
 
   async function processRequest(_url: RequestInfo, _pathname: string): Promise<void> {
@@ -430,6 +439,8 @@ namespace nerdquiz {
           function loadQuiz(): void {
             if (sessionStorage.getItem("user") == quizDataArray[i].user) {
               localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
+            } else {
+              localStorage.setItem("quizLength", quizDataArray[i].question.length);
             }
             window.location.href = "../pages/quiz.html";
           }
@@ -444,6 +455,11 @@ namespace nerdquiz {
 
     if (_pathname == answerVariable) {
       _url += answerVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
+      response = await fetch(_url);
+    }
+
+    if (_pathname == unlockButtonsVariable) {
+      _url += unlockButtonsVariable + "?";
       response = await fetch(_url);
     }
   }

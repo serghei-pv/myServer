@@ -148,19 +148,25 @@ var nerdquiz;
                         counter++;
                     }
                     if (counter == participantsArray.length) {
-                        let participant = { username: JSON.stringify(url.query.username), points: 0, answer: "No answer yet" };
+                        let participant = { username: JSON.stringify(url.query.username), points: 0, answer: "No answer yet", lock: "false" };
                         participantsArray.push(participant);
                     }
                 }
                 if (counter == 0) {
-                    participantsArray.push({ username: url.query.username, points: 0, answer: "No answer yet" });
+                    participantsArray.push({ username: url.query.username, points: 0, answer: "No answer yet", lock: "false" });
                 }
             }
             if (url.pathname == "/answer") {
                 for (let key in participantsArray) {
                     if (participantsArray[key].username == url.query.username) {
                         participantsArray[key].answer = url.query.answer.toLocaleString();
+                        participantsArray[key].lock = "true";
                     }
+                }
+            }
+            if (url.pathname == "/unlock") {
+                for (let key in participantsArray) {
+                    participantsArray[key].lock = "false";
                 }
             }
             _response.end();

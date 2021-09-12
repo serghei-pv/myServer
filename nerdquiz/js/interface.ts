@@ -18,4 +18,5 @@ export interface Participant {
   username: string | string[];
   points: number;
   answer: string;
+  lock: string;
 }

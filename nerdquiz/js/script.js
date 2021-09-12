@@ -6,7 +6,6 @@ var nerdquiz;
     let menuCenter = document.getElementById("menuCenter");
     let indexMain = document.getElementById("indexMain");
     let leftMain = document.getElementById("leftMain");
-    // let rightMain: HTMLUListElement = <HTMLUListElement>document.getElementById("rightMain");
     let registerButton = document.getElementById("registerButton");
     let loginButton = document.getElementById("loginButton");
     let createQuizForm = document.getElementById("createQuizForm");
@@ -24,7 +23,6 @@ var nerdquiz;
     let createQuestionsCounter = 1;
     let questionCounter = 0;
     let heightLimit = 50;
-    let quiz = JSON.parse(localStorage.getItem("quiz"));
     let filledTextAreaArray = new Array();
     // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
     // let host: string = "https://wb-s.herokuapp.com/";
@@ -38,6 +36,7 @@ var nerdquiz;
     let quizListVariable = "quizList";
     let participantVariable = "participant";
     let answerVariable = "answer";
+    let unlockButtonsVariable = "unlock";
     if (sessionStorage.getItem("login") != "true") {
         indexMenu.style.visibility = "hidden";
     }
@@ -61,17 +60,18 @@ var nerdquiz;
         saveQuiz.addEventListener("click", processSaveQuiz);
     }
     if (currentPage == "quiz.html") {
-        if (sessionStorage.getItem("user") == quiz.user) {
+        if (sessionStorage.getItem("user") == JSON.parse(localStorage.getItem("quiz")).user) {
             hostQuiz();
             manageQuiz();
         }
-        if (sessionStorage.getItem("user") != quiz.user) {
+        if (sessionStorage.getItem("user") != JSON.parse(localStorage.getItem("quiz")).user) {
             participateQuiz();
             processParticipant();
         }
     }
     function hostQuiz() {
         document.getElementById("nextQuestion").style.visibility = "visible";
+        document.getElementById("nextQuestion").addEventListener("click", processUnlockButtons);
         quizFooter.appendChild(questionNumberDisplay);
         quizTop.appendChild(questionDisplay);
         quizTop.appendChild(answerDisplay);
@@ -157,27 +157,34 @@ var nerdquiz;
         let answerForm = document.createElement("FORM");
         let textArea = document.createElement("TEXTAREA");
         let submitButton = document.createElement("BUTTON");
+        let points = document.createElement("P");
         quizTop.appendChild(answerForm);
         answerForm.appendChild(textArea);
         answerForm.appendChild(submitButton);
+        quizBottom.appendChild(points);
         answerForm.className = "answerForm";
         textArea.className = "participantsTextarea";
         submitButton.className = "submitButton";
+        submitButton.id = "answerButton";
         textArea.name = "answer";
         submitButton.innerHTML = "Answer";
         submitButton.type = "button";
+        points.id = "answerPoints";
         textArea.addEventListener("input", autoExpand);
         submitButton.addEventListener("click", processAnswer);
-        submitButton.addEventListener("click", appendLastAnswer);
-        function appendLastAnswer() {
-            let lastAnswer = document.createElement("P");
-            quizBottom.insertBefore(lastAnswer, quizBottom.firstChild);
-            lastAnswer.className = "lastAnswer";
-            lastAnswer.innerHTML = textArea.value;
-            if (quizBottom.childNodes.length > 3) {
-                quizBottom.removeChild(quizBottom.lastChild);
+        ws.addEventListener("message", ({ data }) => {
+            for (let i = 0; i < JSON.parse(data).length; i++) {
+                if (JSON.parse(data)[i].username == sessionStorage.getItem("user") && points.innerHTML != JSON.parse(data)[i].points) {
+                    points.innerHTML = JSON.parse(data)[i].points + "/" + localStorage.getItem("quizLength");
+                    if (JSON.parse(data)[i].lock == "true") {
+                        document.getElementById("answerButton").classList.add("lock");
+                    }
+                    if (JSON.parse(data)[i].lock == "false") {
+                        document.getElementById("answerButton").classList.remove("lock");
+                    }
+                }
             }
-        }
+        });
     }
     function addQuestion() {
         let createSlot = document.createElement("DIV");
@@ -217,8 +224,8 @@ var nerdquiz;
     }
     function displayQuestion() {
         questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
-        questionDisplay.innerHTML = quiz.question[questionCounter];
-        answerDisplay.innerHTML = "Answer: " + quiz.answer[questionCounter];
+        questionDisplay.innerHTML = JSON.parse(localStorage.getItem("quiz")).question[questionCounter];
+        answerDisplay.innerHTML = "Answer: " + JSON.parse(localStorage.getItem("quiz")).answer[questionCounter];
     }
     function previousQuestion() {
         questionCounter--;
@@ -230,7 +237,7 @@ var nerdquiz;
     }
     function nextQuestion() {
         questionCounter++;
-        if (quiz.question[questionCounter + 1] == undefined) {
+        if (JSON.parse(localStorage.getItem("quiz")).question[questionCounter + 1] == undefined) {
             document.getElementById("nextQuestion").style.visibility = "hidden";
         }
         document.getElementById("previousQuestion").style.visibility = "visible";
@@ -281,6 +288,9 @@ var nerdquiz;
     }
     function processAnswer() {
         processRequest(host, answerVariable);
+    }
+    function processUnlockButtons() {
+        processRequest(host, unlockButtonsVariable);
     }
     async function processRequest(_url, _pathname) {
         let formData = new FormData(document.forms[0]);
@@ -366,6 +376,9 @@ var nerdquiz;
                         if (sessionStorage.getItem("user") == quizDataArray[i].user) {
                             localStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
                         }
+                        else {
+                            localStorage.setItem("quizLength", quizDataArray[i].question.length);
+                        }
                         window.location.href = "../pages/quiz.html";
                     }
                 }
@@ -377,6 +390,10 @@ var nerdquiz;
         }
         if (_pathname == answerVariable) {
             _url += answerVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
+            response = await fetch(_url);
+        }
+        if (_pathname == unlockButtonsVariable) {
+            _url += unlockButtonsVariable + "?";
             response = await fetch(_url);
         }
     }
