@@ -15,8 +15,14 @@ export interface Quiz {
 }
 
 export interface Participant {
-  username: string | string[];
+  username: string;
   points: number;
   answer: string;
+  roomnumber: string | string[];
   lock: string;
+}
+
+export interface Room {
+  roomnumber: string;
+  userlist: string[];
 }

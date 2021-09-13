@@ -339,7 +339,7 @@ textarea:focus {
 }
 
 #quizBottom {
-  width: 100%;
+  width: 90%;
   text-align: left;
   margin: 5%;
 }
@@ -412,7 +412,6 @@ textarea:focus {
 #answerPoints {
   text-align: center;
   font-size: 50px;
-  width: 90%;
   margin: 0;
 }
 
@@ -494,7 +493,6 @@ textarea:focus {
 
 #roomNumber {
   float: right;
-  font-size: 25px;
 }
 
 .blue {

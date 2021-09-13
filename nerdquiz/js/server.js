@@ -17,6 +17,7 @@ var nerdquiz;
     let allUser;
     let allQuizzes;
     let participantsArray = [];
+    let roomArray = [];
     console.log("Starting server");
     let server = Http.createServer();
     server.addListener("listening", handleListen);
@@ -140,6 +141,16 @@ var nerdquiz;
             if (url.pathname == "/quizList") {
                 _response.setHeader("content-type", "application/json");
                 _response.write(JSON.stringify(allQuizzes));
+                for (let key in allQuizzes) {
+                    let userlist = [];
+                    for (let user in participantsArray) {
+                        if (JSON.stringify(allQuizzes[key]._id) == JSON.stringify(participantsArray[user].roomnumber)) {
+                            userlist.push(participantsArray[user].username);
+                        }
+                    }
+                    let room = { roomnumber: JSON.parse(JSON.stringify(allQuizzes[key]._id)), userlist: userlist };
+                    roomArray[key] = room;
+                }
             }
             if (url.pathname == "/participant") {
                 let counter = 0;
@@ -148,12 +159,24 @@ var nerdquiz;
                         counter++;
                     }
                     if (counter == participantsArray.length) {
-                        let participant = { username: JSON.stringify(url.query.username), points: 0, answer: "No answer yet", lock: "false" };
+                        let participant = {
+                            username: JSON.stringify(url.query.username),
+                            points: 0,
+                            answer: "No answer yet",
+                            roomnumber: url.query.roomnumber,
+                            lock: "false",
+                        };
                         participantsArray.push(participant);
                     }
                 }
                 if (counter == 0) {
-                    participantsArray.push({ username: url.query.username, points: 0, answer: "No answer yet", lock: "false" });
+                    participantsArray.push({
+                        username: JSON.parse(JSON.stringify(url.query.username)),
+                        points: 0,
+                        answer: "No answer yet",
+                        roomnumber: url.query.roomnumber,
+                        lock: "false",
+                    });
                 }
             }
             if (url.pathname == "/answer") {

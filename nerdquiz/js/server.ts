@@ -2,7 +2,7 @@ import * as Http from "http";
 import * as Url from "url";
 import * as Mongo from "mongodb";
 import * as Websocket from "ws";
-import { User, Quiz, Participant } from "../js/interface";
+import { User, Quiz, Participant, Room } from "../js/interface";
 
 export namespace nerdquiz {
   //let dbURL: string = "mongodb://localhost:27017";
@@ -15,6 +15,7 @@ export namespace nerdquiz {
   let allUser: User[];
   let allQuizzes: Quiz[];
   let participantsArray: Participant[] = [];
+  let roomArray: Room[] = [];
 
   console.log("Starting server");
   let server: Http.Server = Http.createServer();
@@ -158,6 +159,19 @@ export namespace nerdquiz {
       if (url.pathname == "/quizList") {
         _response.setHeader("content-type", "application/json");
         _response.write(JSON.stringify(allQuizzes));
+
+        for (let key in allQuizzes) {
+          let userlist: string[] = [];
+
+          for (let user in participantsArray) {
+            if (JSON.stringify(allQuizzes[key]._id) == JSON.stringify(participantsArray[user].roomnumber)) {
+              userlist.push(participantsArray[user].username);
+            }
+          }
+
+          let room: Room = { roomnumber: JSON.parse(JSON.stringify(allQuizzes[key]._id)), userlist: userlist };
+          roomArray[key] = room;
+        }
       }
 
       if (url.pathname == "/participant") {
@@ -169,13 +183,25 @@ export namespace nerdquiz {
           }
 
           if (counter == participantsArray.length) {
-            let participant: Participant = { username: JSON.stringify(url.query.username), points: 0, answer: "No answer yet", lock: "false" };
+            let participant: Participant = {
+              username: JSON.stringify(url.query.username),
+              points: 0,
+              answer: "No answer yet",
+              roomnumber: url.query.roomnumber,
+              lock: "false",
+            };
             participantsArray.push(participant);
           }
         }
 
         if (counter == 0) {
-          participantsArray.push({ username: url.query.username, points: 0, answer: "No answer yet", lock: "false" });
+          participantsArray.push({
+            username: JSON.parse(JSON.stringify(url.query.username)),
+            points: 0,
+            answer: "No answer yet",
+            roomnumber: url.query.roomnumber,
+            lock: "false",
+          });
         }
       }
 
