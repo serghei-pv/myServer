@@ -355,8 +355,12 @@ var nerdquiz;
             }
         }
         if (_pathname == createQuizVariable) {
-            _url += createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=true";
-            response = await fetch(_url);
+            // _url += createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=true";
+            let postRequest = {
+                method: "POST",
+                body: JSON.stringify(createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=true"),
+            };
+            response = await fetch(host, postRequest);
             textData = await response.text();
             window.location.href = "../pages/create.html";
         }

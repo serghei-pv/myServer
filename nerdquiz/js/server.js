@@ -57,6 +57,7 @@ var nerdquiz;
         console.log("Action recieved");
         _response.setHeader("Access-Control-Allow-Origin", "*");
         _response.setHeader("content-type", "text/html; charset=utf-8");
+        console.log(_request);
         if (_request.url) {
             let url = Url.parse(_request.url, true);
             let userbaseCursor = userbase.find();
