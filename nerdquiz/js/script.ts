@@ -25,10 +25,10 @@ namespace nerdquiz {
   let heightLimit: number = 50;
   let filledTextAreaArray: HTMLTextAreaElement[] = new Array();
 
-  // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-  // let host: string = "https://wb-s.herokuapp.com/";
-  let ws = new WebSocket("ws://localhost:8100/");
-  let host: string = "http://localhost:8100/";
+  let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+  let host: string = "https://wb-s.herokuapp.com/";
+  // let ws = new WebSocket("ws://localhost:8100/");
+  // let host: string = "http://localhost:8100/";
 
   let loginVariable: string = "login";
   let registerVariable: string = "register";
@@ -107,11 +107,15 @@ namespace nerdquiz {
           let answerContainer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
           let participantAnswerName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
           let participantAnswer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantSubPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantAddPoint: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantSubPoint: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
+          let participantAddPoint: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
+          let participantSubHalfPoint: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
+          let participantAddHalfPoint: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
 
-          let subParticipant: any = { username: JSON.parse(data)[i].username, points: -1 };
-          let addParticipant: any = { username: JSON.parse(data)[i].username, points: +1 };
+          let subPoint: any = { username: JSON.parse(data)[i].username, points: -1 };
+          let subHalfPoint: any = { username: JSON.parse(data)[i].username, points: -0.5 };
+          let addHalfPoint: any = { username: JSON.parse(data)[i].username, points: +0.5 };
+          let addPoint: any = { username: JSON.parse(data)[i].username, points: +1 };
 
           if (i == leftMain.childNodes.length) {
             participantContainer.id = "participantContainer" + i;
@@ -127,6 +131,8 @@ namespace nerdquiz {
             participantName.className = "participantName";
             participantPoints.className = "participantPoints";
             participantSubPoint.className = "participantSubPoint";
+            participantSubHalfPoint.className = "participantSubHalfPoint";
+            participantAddHalfPoint.className = "participantAddHalfPoint";
             participantAddPoint.className = "participantAddPoint";
             answerContainer.className = "answerContainer";
             participantAnswerName.className = "participantAnswerName";
@@ -137,14 +143,20 @@ namespace nerdquiz {
             participantContainer.appendChild(participantPoints);
             answerContainer.appendChild(participantAnswerName);
             answerContainer.appendChild(participantSubPoint);
+            answerContainer.appendChild(participantSubHalfPoint);
+            answerContainer.appendChild(participantAddHalfPoint);
             answerContainer.appendChild(participantAddPoint);
             answerContainer.appendChild(participantAnswer);
 
-            participantSubPoint.innerHTML = "-";
-            participantAddPoint.innerHTML = "+";
+            participantSubPoint.innerHTML = "-1";
+            participantSubHalfPoint.innerHTML = "-0.5";
+            participantAddHalfPoint.innerHTML = "+0.5";
+            participantAddPoint.innerHTML = "+1";
 
             participantContainer.addEventListener("click", showParticipantAnswer);
             participantSubPoint.addEventListener("click", subPoints);
+            participantSubHalfPoint.addEventListener("click", subHalfPoints);
+            participantAddHalfPoint.addEventListener("click", addHalfPoints);
             participantAddPoint.addEventListener("click", addPoints);
 
             function showParticipantAnswer(): void {
@@ -158,10 +170,16 @@ namespace nerdquiz {
           }
 
           function subPoints(): void {
-            ws.send(JSON.stringify(subParticipant));
+            ws.send(JSON.stringify(subPoint));
           }
           function addPoints(): void {
-            ws.send(JSON.stringify(addParticipant));
+            ws.send(JSON.stringify(addPoint));
+          }
+          function subHalfPoints(): void {
+            ws.send(JSON.stringify(subHalfPoint));
+          }
+          function addHalfPoints(): void {
+            ws.send(JSON.stringify(addHalfPoint));
           }
 
           if (
@@ -462,6 +480,10 @@ namespace nerdquiz {
               sessionStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
             } else {
               sessionStorage.setItem("quizLength", quizDataArray[i].question.length);
+
+              if (sessionStorage.getItem("quiz") != null) {
+                sessionStorage.removeItem("quiz");
+              }
             }
             sessionStorage.setItem("roomNumber", quizDataArray[i]._id);
             window.location.href = "../pages/quiz.html";

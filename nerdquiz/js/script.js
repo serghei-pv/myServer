@@ -24,10 +24,10 @@ var nerdquiz;
     let questionCounter = 0;
     let heightLimit = 50;
     let filledTextAreaArray = new Array();
-    // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-    // let host: string = "https://wb-s.herokuapp.com/";
-    let ws = new WebSocket("ws://localhost:8100/");
-    let host = "http://localhost:8100/";
+    let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+    let host = "https://wb-s.herokuapp.com/";
+    // let ws = new WebSocket("ws://localhost:8100/");
+    // let host: string = "http://localhost:8100/";
     let loginVariable = "login";
     let registerVariable = "register";
     let createQuizVariable = "create";
@@ -93,10 +93,14 @@ var nerdquiz;
                     let answerContainer = document.createElement("DIV");
                     let participantAnswerName = document.createElement("DIV");
                     let participantAnswer = document.createElement("DIV");
-                    let participantSubPoint = document.createElement("DIV");
-                    let participantAddPoint = document.createElement("DIV");
-                    let subParticipant = { username: JSON.parse(data)[i].username, points: -1 };
-                    let addParticipant = { username: JSON.parse(data)[i].username, points: +1 };
+                    let participantSubPoint = document.createElement("BUTTON");
+                    let participantAddPoint = document.createElement("BUTTON");
+                    let participantSubHalfPoint = document.createElement("BUTTON");
+                    let participantAddHalfPoint = document.createElement("BUTTON");
+                    let subPoint = { username: JSON.parse(data)[i].username, points: -1 };
+                    let subHalfPoint = { username: JSON.parse(data)[i].username, points: -0.5 };
+                    let addHalfPoint = { username: JSON.parse(data)[i].username, points: +0.5 };
+                    let addPoint = { username: JSON.parse(data)[i].username, points: +1 };
                     if (i == leftMain.childNodes.length) {
                         participantContainer.id = "participantContainer" + i;
                         participantName.id = "name" + i;
@@ -110,6 +114,8 @@ var nerdquiz;
                         participantName.className = "participantName";
                         participantPoints.className = "participantPoints";
                         participantSubPoint.className = "participantSubPoint";
+                        participantSubHalfPoint.className = "participantSubHalfPoint";
+                        participantAddHalfPoint.className = "participantAddHalfPoint";
                         participantAddPoint.className = "participantAddPoint";
                         answerContainer.className = "answerContainer";
                         participantAnswerName.className = "participantAnswerName";
@@ -119,12 +125,18 @@ var nerdquiz;
                         participantContainer.appendChild(participantPoints);
                         answerContainer.appendChild(participantAnswerName);
                         answerContainer.appendChild(participantSubPoint);
+                        answerContainer.appendChild(participantSubHalfPoint);
+                        answerContainer.appendChild(participantAddHalfPoint);
                         answerContainer.appendChild(participantAddPoint);
                         answerContainer.appendChild(participantAnswer);
-                        participantSubPoint.innerHTML = "-";
-                        participantAddPoint.innerHTML = "+";
+                        participantSubPoint.innerHTML = "-1";
+                        participantSubHalfPoint.innerHTML = "-0.5";
+                        participantAddHalfPoint.innerHTML = "+0.5";
+                        participantAddPoint.innerHTML = "+1";
                         participantContainer.addEventListener("click", showParticipantAnswer);
                         participantSubPoint.addEventListener("click", subPoints);
+                        participantSubHalfPoint.addEventListener("click", subHalfPoints);
+                        participantAddHalfPoint.addEventListener("click", addHalfPoints);
                         participantAddPoint.addEventListener("click", addPoints);
                         function showParticipantAnswer() {
                             if (quizBottom.childNodes.length != 0) {
@@ -136,10 +148,16 @@ var nerdquiz;
                         }
                     }
                     function subPoints() {
-                        ws.send(JSON.stringify(subParticipant));
+                        ws.send(JSON.stringify(subPoint));
                     }
                     function addPoints() {
-                        ws.send(JSON.stringify(addParticipant));
+                        ws.send(JSON.stringify(addPoint));
+                    }
+                    function subHalfPoints() {
+                        ws.send(JSON.stringify(subHalfPoint));
+                    }
+                    function addHalfPoints() {
+                        ws.send(JSON.stringify(addHalfPoint));
                     }
                     if (document.getElementById("name" + i).innerHTML != JSON.parse(data)[i].username ||
                         document.getElementById("points" + i).innerHTML != JSON.parse(data)[i].points) {
@@ -396,6 +414,9 @@ var nerdquiz;
                         }
                         else {
                             sessionStorage.setItem("quizLength", quizDataArray[i].question.length);
+                            if (sessionStorage.getItem("quiz") != null) {
+                                sessionStorage.removeItem("quiz");
+                            }
                         }
                         sessionStorage.setItem("roomNumber", quizDataArray[i]._id);
                         window.location.href = "../pages/quiz.html";

@@ -1,12 +1,12 @@
 * {
   margin: 0;
   padding: 0;
+  color: white;
 }
 
 html {
   background: #171719;
   height: 100%;
-  color: white;
   font-size: 20px;
   font-family: Montserrat;
   background-attachment: fixed;
@@ -437,9 +437,14 @@ textarea:focus {
 }
 
 .participantSubPoint,
+.participantSubHalfPoint,
+.participantAddHalfPoint,
 .participantAddPoint {
   cursor: pointer;
   margin-right: 2%;
+  width: 5%;
+  border: 2px solid white;
+  background-color: transparent;
 
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -447,23 +452,47 @@ textarea:focus {
   user-select: none;
 }
 
+.participantSubPoint,
+.participantSubHalfPoint {
+  border-color: rgb(255, 75, 75);
+}
+
+.participantSubPoint:hover,
+.participantSubHalfPoint:hover {
+  background-color: rgba(255, 75, 75, 0.3);
+}
+
+.participantAddHalfPoint,
+.participantAddPoint {
+  border-color: rgb(62, 252, 62);
+}
+
+.participantAddPoint:hover,
+.participantAddHalfPoint:hover {
+  background-color: rgba(62, 252, 62, 0.3);
+}
+
 .participantAnswerName {
   order: 1;
   margin-right: 2%;
 }
-
 .participantSubPoint {
   order: 2;
 }
-
-.participantAddPoint {
+.participantSubHalfPoint {
   order: 3;
+}
+.participantAddHalfPoint {
+  order: 4;
+}
+.participantAddPoint {
+  order: 5;
 }
 
 .participantAnswer {
-  order: 4;
+  order: 6;
   width: 100%;
-  padding: none;
+  padding-top: 20px;
   font-size: 20px;
   word-wrap: break-word; /* IE 5.5-7 */
   white-space: -moz-pre-wrap; /* Firefox 1.0-2.0 */
@@ -491,14 +520,6 @@ textarea:focus {
   -ms-animation: fadeOut forwards 3s;
 }
 
-#roomNumber {
-  float: right;
-}
-
-.blue {
-  color: rgb(0, 130, 252);
-}
-
 @keyframes fadeOut {
   0% {
     opacity: 1;
@@ -521,4 +542,12 @@ textarea:focus {
   100% {
     opacity: 0;
   }
+}
+
+#roomNumber {
+  float: right;
+}
+
+.blue {
+  color: rgb(0, 130, 252);
 }
