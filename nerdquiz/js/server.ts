@@ -12,6 +12,7 @@ export namespace nerdquiz {
   if (!port) port = 8100;
   let userbase: Mongo.Collection;
   let quiz: Mongo.Collection;
+  let backup: Mongo.Collection;
   let allUser: User[];
   let allQuizzes: Quiz[];
   let participantsArray: Participant[] = [];
@@ -33,6 +34,7 @@ export namespace nerdquiz {
 
     userbase = mongoClient.db("nerdquiz").collection("user");
     quiz = mongoClient.db("nerdquiz").collection("quizzes");
+    backup = mongoClient.db("nerdquiz").collection("backup");
   }
 
   function handleListen(): void {
@@ -45,7 +47,13 @@ export namespace nerdquiz {
     socket.on("message", async (message) => {
       for (let key in participantsArray) {
         if (JSON.parse(message.toLocaleString()).username == participantsArray[key].username) {
-          participantsArray[key].points += JSON.parse(message.toLocaleString()).points;
+          if (JSON.parse(message.toLocaleString()).points != null) {
+            participantsArray[key].points += JSON.parse(message.toLocaleString()).points;
+          }
+          if (JSON.parse(message.toLocaleString()).lock != null && participantsArray[key].lock != "false") {
+            participantsArray[key].lock = JSON.parse(message.toLocaleString()).lock;
+            participantsArray[key].answer = "";
+          }
         }
       }
     });
@@ -65,8 +73,6 @@ export namespace nerdquiz {
     console.log("Action recieved");
     _response.setHeader("Access-Control-Allow-Origin", "*");
     _response.setHeader("content-type", "text/html; charset=utf-8");
-
-    console.log(_request);
 
     if (_request.url) {
       let url: Url.UrlWithParsedQuery = Url.parse(_request.url, true);
@@ -121,7 +127,7 @@ export namespace nerdquiz {
 
         for (let key in allQuizzes) {
           if (allQuizzes[key].user == url.query.user && allQuizzes[key].ready == "false") {
-            quiz.updateOne({ _id: allQuizzes[key]._id }, { $set: { question: url.query.question, ready: url.query.ready } });
+            quiz.updateOne({ _id: allQuizzes[key]._id }, { $set: { question: url.query.q, answer: url.query.a, ready: url.query.ready } });
             status = 1;
           }
         }
@@ -135,7 +141,7 @@ export namespace nerdquiz {
 
         for (let key in allQuizzes) {
           if (allQuizzes[key].user == url.query.user && allQuizzes[key].ready == "false") {
-            quiz.updateOne({ _id: allQuizzes[key]._id }, { $set: { question: url.query.question, answer: url.query.answer } });
+            quiz.updateOne({ _id: allQuizzes[key]._id }, { $set: { question: url.query.q, answer: url.query.a } });
             status = 1;
           }
         }
@@ -183,24 +189,20 @@ export namespace nerdquiz {
           if (participantsArray[key].username == url.query.username) {
             counter++;
           }
-
-          if (counter == participantsArray.length) {
-            let participant: Participant = {
-              username: JSON.stringify(url.query.username),
-              points: 0,
-              answer: "No answer yet",
-              roomnumber: url.query.roomnumber,
-              lock: "false",
-            };
-            participantsArray.push(participant);
-          }
         }
 
         if (counter == 0) {
           participantsArray.push({
             username: JSON.parse(JSON.stringify(url.query.username)),
             points: 0,
-            answer: "No answer yet",
+            answer: "",
+            roomnumber: url.query.roomnumber,
+            lock: "false",
+          });
+          backup.insertOne({
+            username: JSON.parse(JSON.stringify(url.query.username)),
+            points: 0,
+            answer: [],
             roomnumber: url.query.roomnumber,
             lock: "false",
           });
@@ -218,8 +220,22 @@ export namespace nerdquiz {
 
       if (url.pathname == "/continue") {
         for (let key in participantsArray) {
+          backup.updateOne(
+            { username: participantsArray[key].username },
+            {
+              $set: {
+                points: participantsArray[key].points,
+                roomnumber: participantsArray[key].roomnumber,
+                lock: participantsArray[key].lock,
+              },
+              $push: {
+                answer: participantsArray[key].answer,
+              },
+            }
+          );
+
           participantsArray[key].lock = "false";
-          participantsArray[key].answer = "No answer yet";
+          participantsArray[key].answer = "";
         }
       }
 

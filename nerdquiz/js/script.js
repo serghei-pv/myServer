@@ -97,10 +97,12 @@ var nerdquiz;
                     let participantAddPoint = document.createElement("BUTTON");
                     let participantSubHalfPoint = document.createElement("BUTTON");
                     let participantAddHalfPoint = document.createElement("BUTTON");
+                    let participantUnlock = document.createElement("BUTTON");
                     let subPoint = { username: JSON.parse(data)[i].username, points: -1 };
                     let subHalfPoint = { username: JSON.parse(data)[i].username, points: -0.5 };
                     let addHalfPoint = { username: JSON.parse(data)[i].username, points: +0.5 };
                     let addPoint = { username: JSON.parse(data)[i].username, points: +1 };
+                    let unlockAnswer = { username: JSON.parse(data)[i].username, lock: "false" };
                     if (i == leftMain.childNodes.length) {
                         participantContainer.id = "participantContainer" + i;
                         participantName.id = "name" + i;
@@ -113,13 +115,14 @@ var nerdquiz;
                         participantContainer.className = "participantContainer";
                         participantName.className = "participantName";
                         participantPoints.className = "participantPoints";
+                        answerContainer.className = "answerContainer";
+                        participantAnswerName.className = "participantAnswerName";
                         participantSubPoint.className = "participantSubPoint";
                         participantSubHalfPoint.className = "participantSubHalfPoint";
                         participantAddHalfPoint.className = "participantAddHalfPoint";
                         participantAddPoint.className = "participantAddPoint";
-                        answerContainer.className = "answerContainer";
-                        participantAnswerName.className = "participantAnswerName";
                         participantAnswer.className = "participantAnswer";
+                        participantUnlock.className = "participantUnlock";
                         leftMain.appendChild(participantContainer);
                         participantContainer.appendChild(participantName);
                         participantContainer.appendChild(participantPoints);
@@ -128,16 +131,19 @@ var nerdquiz;
                         answerContainer.appendChild(participantSubHalfPoint);
                         answerContainer.appendChild(participantAddHalfPoint);
                         answerContainer.appendChild(participantAddPoint);
+                        answerContainer.appendChild(participantUnlock);
                         answerContainer.appendChild(participantAnswer);
                         participantSubPoint.innerHTML = "-1";
                         participantSubHalfPoint.innerHTML = "-0.5";
                         participantAddHalfPoint.innerHTML = "+0.5";
                         participantAddPoint.innerHTML = "+1";
+                        participantUnlock.innerHTML = "clear";
                         participantContainer.addEventListener("click", showParticipantAnswer);
                         participantSubPoint.addEventListener("click", subPoints);
                         participantSubHalfPoint.addEventListener("click", subHalfPoints);
                         participantAddHalfPoint.addEventListener("click", addHalfPoints);
                         participantAddPoint.addEventListener("click", addPoints);
+                        participantUnlock.addEventListener("click", unlock);
                         function showParticipantAnswer() {
                             if (quizBottom.childNodes.length != 0) {
                                 quizBottom.removeChild(quizBottom.lastChild);
@@ -159,12 +165,15 @@ var nerdquiz;
                     function addHalfPoints() {
                         ws.send(JSON.stringify(addHalfPoint));
                     }
+                    function unlock() {
+                        ws.send(JSON.stringify(unlockAnswer));
+                    }
                     if (document.getElementById("name" + i).innerHTML != JSON.parse(data)[i].username ||
                         document.getElementById("points" + i).innerHTML != JSON.parse(data)[i].points) {
                         document.getElementById("name" + i).innerHTML = JSON.parse(data)[i].username;
                         document.getElementById("points" + i).innerHTML = JSON.parse(data)[i].points;
                     }
-                    if (JSON.parse(data)[i].answer != "No answer yet") {
+                    if (JSON.parse(data)[i].answer != "") {
                         document.getElementById("name" + i).classList.add("blue");
                     }
                     else {
@@ -187,11 +196,13 @@ var nerdquiz;
         let answerForm = document.createElement("FORM");
         let textArea = document.createElement("TEXTAREA");
         let submitButton = document.createElement("BUTTON");
-        let points = document.createElement("P");
+        let pointsDisplay = document.createElement("P");
+        let answerField = document.querySelector("textarea");
+        let points;
         quizTop.appendChild(answerForm);
         answerForm.appendChild(textArea);
         answerForm.appendChild(submitButton);
-        quizBottom.appendChild(points);
+        quizBottom.appendChild(pointsDisplay);
         answerForm.className = "answerForm";
         textArea.className = "participantsTextarea";
         submitButton.className = "submitButton";
@@ -199,23 +210,29 @@ var nerdquiz;
         textArea.name = "answer";
         submitButton.innerHTML = "Answer";
         submitButton.type = "button";
-        points.id = "answerPoints";
+        pointsDisplay.id = "answerPoints";
         textArea.addEventListener("input", autoExpand);
         submitButton.addEventListener("click", processAnswer);
         ws.addEventListener("message", ({ data }) => {
             for (let i = 0; i < JSON.parse(data).length; i++) {
                 if (JSON.parse(data)[i].username == sessionStorage.getItem("user")) {
-                    if (points.innerHTML != JSON.parse(data)[i].points) {
-                        points.innerHTML = JSON.parse(data)[i].points + "/" + sessionStorage.getItem("quizLength");
-                    }
-                    if (JSON.parse(data)[i].points == 0) {
-                        points.innerHTML = "0" + "/" + sessionStorage.getItem("quizLength");
+                    if (points != JSON.parse(data)[i].points) {
+                        points = JSON.parse(data)[i].points;
+                        pointsDisplay.innerHTML = points + " / " + sessionStorage.getItem("quizLength");
                     }
                     if (JSON.parse(data)[i].lock == "true") {
                         document.getElementById("answerButton").classList.add("lock");
+                        answerField = document.querySelector("textarea");
+                        answerField.classList.add("lock");
+                        answerField.value = JSON.parse(data)[i].answer;
                     }
                     if (JSON.parse(data)[i].lock == "false") {
                         document.getElementById("answerButton").classList.remove("lock");
+                        if (answerField == document.querySelector("textarea")) {
+                            answerField.classList.remove("lock");
+                            answerField.value = "";
+                            answerField = undefined;
+                        }
                     }
                 }
             }
@@ -233,8 +250,8 @@ var nerdquiz;
         answerArea.className = "answerArea";
         questionArea.id = "questionArea" + createQuestionsCounter;
         answerArea.id = "answerArea" + createQuestionsCounter;
-        questionArea.setAttribute("name", "question");
-        answerArea.setAttribute("name", "answer");
+        questionArea.setAttribute("name", "q");
+        answerArea.setAttribute("name", "a");
         questionArea.placeholder = "Question:";
         answerArea.placeholder = "Answer:";
         filledTextAreaArray.push(questionArea);
@@ -322,7 +339,12 @@ var nerdquiz;
         processRequest(host, participantVariable);
     }
     function processAnswer() {
-        processRequest(host, answerVariable);
+        if (document.querySelector("textarea").value != "") {
+            processRequest(host, answerVariable);
+        }
+        else {
+            console.log("test");
+        }
     }
     function processContinue() {
         processRequest(host, continueVariable);
@@ -355,25 +377,33 @@ var nerdquiz;
             }
         }
         if (_pathname == createQuizVariable) {
-            // _url += createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=true";
-            let postRequest = {
-                method: "POST",
-                body: JSON.stringify(createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=true"),
-            };
-            response = await fetch(host, postRequest);
+            _url += createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=true";
+            response = await fetch(_url);
             textData = await response.text();
             window.location.href = "../pages/create.html";
         }
         if (_pathname == saveQuizVariable) {
             _url += saveQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=false";
-            response = await fetch(_url);
-            textData = await response.text();
+            let saveMessage = document.createElement("SPAN");
+            saveMessage.className = "alertMessage";
+            try {
+                response = await fetch(_url);
+                saveMessage.innerHTML = "Saved succefully";
+                menuCenter.appendChild(saveMessage);
+            }
+            catch (e) {
+                saveMessage.innerHTML = "Quiz is too long! Save failed";
+                menuCenter.appendChild(saveMessage);
+            }
+            if (menuCenter.childNodes.length > 1) {
+                menuCenter.removeChild(menuCenter.firstChild);
+            }
         }
         if (_pathname == loadQuizVariable) {
             _url += loadQuizVariable + "?" + "&user=" + sessionStorage.getItem("user");
             response = await fetch(_url);
             let quiz = await response.json();
-            if (quiz != "0") {
+            if (quiz != "0" && quiz.answer != null) {
                 for (let i = 1; i <= quiz.answer.length; i++) {
                     addQuestion();
                     let localQuestionArea = document.getElementById("questionArea" + i);

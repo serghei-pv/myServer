@@ -418,6 +418,7 @@ textarea:focus {
 
 .lock {
   pointer-events: none;
+  border-color: rgb(129, 0, 0);
 }
 
 #participantsArea {
@@ -440,7 +441,8 @@ textarea:focus {
 .participantSubPoint,
 .participantSubHalfPoint,
 .participantAddHalfPoint,
-.participantAddPoint {
+.participantAddPoint,
+.participantUnlock {
   cursor: pointer;
   margin-right: 2%;
   width: 5%;
@@ -473,25 +475,32 @@ textarea:focus {
   background-color: rgba(62, 252, 62, 0.3);
 }
 
+.participantUnlock:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
 .participantAnswerName {
   order: 1;
   margin-right: 2%;
 }
-.participantSubPoint {
+.participantUnlock {
   order: 2;
 }
-.participantSubHalfPoint {
+.participantSubPoint {
   order: 3;
 }
-.participantAddHalfPoint {
+.participantSubHalfPoint {
   order: 4;
 }
-.participantAddPoint {
+.participantAddHalfPoint {
   order: 5;
+}
+.participantAddPoint {
+  order: 6;
 }
 
 .participantAnswer {
-  order: 6;
+  order: 7;
   width: 100%;
   padding-top: 20px;
   font-size: 20px;

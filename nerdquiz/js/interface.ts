@@ -8,8 +8,8 @@ export interface User {
 
 export interface Quiz {
   _id: ObjectId;
-  question: string[];
-  answer: string[];
+  q: string[];
+  a: string[];
   user: string;
   ready: string;
 }
