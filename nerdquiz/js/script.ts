@@ -27,8 +27,6 @@ namespace nerdquiz {
 
   let ws = new WebSocket("wss://wb-s.herokuapp.com/");
   let host: string = "https://wb-s.herokuapp.com/";
-  // let ws = new WebSocket("ws://localhost:8100/");
-  // let host: string = "http://localhost:8100/";
 
   let loginVariable: string = "login";
   let registerVariable: string = "register";
