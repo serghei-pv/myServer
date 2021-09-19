@@ -6,7 +6,6 @@ var nerdquiz;
     let menuCenter = document.getElementById("menuCenter");
     let indexMain = document.getElementById("indexMain");
     let leftMain = document.getElementById("leftMain");
-    let registerButton = document.getElementById("registerButton");
     let loginButton = document.getElementById("loginButton");
     let createQuizForm = document.getElementById("createQuizForm");
     let addQuestionButton = document.getElementById("addQuestionButton");
@@ -29,7 +28,6 @@ var nerdquiz;
     // let ws = new WebSocket("ws://localhost:8100/");
     // let host: string = "http://localhost:8100/";
     let loginVariable = "login";
-    let registerVariable = "register";
     let createQuizVariable = "create";
     let saveQuizVariable = "save";
     let loadQuizVariable = "load";
@@ -41,7 +39,6 @@ var nerdquiz;
         indexMenu.style.visibility = "hidden";
     }
     if (currentPage == "index.html" || currentPage == "") {
-        registerButton.addEventListener("click", processRegistration);
         loginButton.addEventListener("click", processLogin);
         if (sessionStorage.getItem("login") == "true") {
             for (let i = indexMain.childNodes.length; i > 0; i--) {
@@ -250,8 +247,8 @@ var nerdquiz;
         answerArea.className = "answerArea";
         questionArea.id = "questionArea" + createQuestionsCounter;
         answerArea.id = "answerArea" + createQuestionsCounter;
-        questionArea.setAttribute("name", "q");
-        answerArea.setAttribute("name", "a");
+        questionArea.setAttribute("name", "question");
+        answerArea.setAttribute("name", "answer");
         questionArea.placeholder = "Question:";
         answerArea.placeholder = "Answer:";
         filledTextAreaArray.push(questionArea);
@@ -298,9 +295,6 @@ var nerdquiz;
     function autoExpand() {
         document.querySelector("textarea").style.height = "";
         document.querySelector("textarea").style.height = Math.min(document.querySelector("textarea").scrollHeight, heightLimit) + "px";
-    }
-    function processRegistration() {
-        processRequest(host, registerVariable);
     }
     function processLogin() {
         processRequest(host, loginVariable);
@@ -355,73 +349,97 @@ var nerdquiz;
         let query = new URLSearchParams(formData);
         let response;
         let textData;
-        let username = query.get("username");
-        if (_pathname == registerVariable) {
-            _url += registerVariable + "?" + query.toString();
-            response = await fetch(_url);
-            textData = await response.text();
-            if (textData == username) {
-                sessionStorage.setItem("login", "true");
-                sessionStorage.setItem("user", username);
-                window.location.href = "./index.html";
-            }
-        }
-        if (_pathname == loginVariable) {
-            _url += loginVariable + "?" + query.toString();
-            response = await fetch(_url);
-            textData = await response.text();
-            if (textData == username) {
-                sessionStorage.setItem("login", "true");
-                sessionStorage.setItem("user", username);
-                window.location.href = "./index.html";
-            }
-        }
-        if (_pathname == createQuizVariable) {
-            _url += createQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=true";
-            response = await fetch(_url);
-            textData = await response.text();
-            window.location.href = "../pages/create.html";
-        }
-        if (_pathname == saveQuizVariable) {
-            _url += saveQuizVariable + "?" + query.toString() + "&user=" + sessionStorage.getItem("user") + "&ready=false";
-            let saveMessage = document.createElement("SPAN");
-            saveMessage.className = "alertMessage";
-            try {
-                response = await fetch(_url);
-                saveMessage.innerHTML = "Saved succefully";
-                menuCenter.appendChild(saveMessage);
-            }
-            catch (e) {
-                saveMessage.innerHTML = "Quiz is too long! Save failed";
-                menuCenter.appendChild(saveMessage);
-            }
-            if (menuCenter.childNodes.length > 1) {
-                menuCenter.removeChild(menuCenter.firstChild);
-            }
-        }
-        if (_pathname == loadQuizVariable) {
-            _url += loadQuizVariable + "?" + "&user=" + sessionStorage.getItem("user");
-            response = await fetch(_url);
-            let quiz = await response.json();
-            if (quiz != "0" && quiz.answer != null) {
-                for (let i = 1; i <= quiz.answer.length; i++) {
-                    addQuestion();
-                    let localQuestionArea = document.getElementById("questionArea" + i);
-                    let localAnswerArea = document.getElementById("answerArea" + i);
-                    localQuestionArea.value = quiz.question[i - 1];
-                    localAnswerArea.value = quiz.answer[i - 1];
+        let data;
+        switch (_pathname) {
+            case loginVariable:
+                _url += loginVariable;
+                data = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: query.get("username"),
+                        // password: query.get("password"),
+                    }),
+                };
+                response = await fetch(_url, data);
+                textData = await response.text();
+                if (textData == query.get("username")) {
+                    sessionStorage.setItem("login", "true");
+                    sessionStorage.setItem("user", query.get("username"));
+                    window.location.href = "./index.html";
                 }
-            }
-            else {
-                addQuestion();
-            }
-        }
-        if (_pathname == quizListVariable) {
-            _url += quizListVariable + "?";
-            response = await fetch(_url);
-            let quizDataArray = await response.json();
-            for (let i = 0; i < quizDataArray.length; i++) {
-                if (quizDataArray[i].ready == "true") {
+                break;
+            case saveQuizVariable:
+                let saveMessage = document.createElement("SPAN");
+                saveMessage.className = "alertMessage";
+                _url += saveQuizVariable;
+                data = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: sessionStorage.getItem("user"),
+                        ready: "false",
+                        question: query.getAll("question"),
+                        answer: query.getAll("answer"),
+                    }),
+                };
+                try {
+                    response = await fetch(_url, data);
+                    saveMessage.innerHTML = "Saved succefully";
+                    menuCenter.appendChild(saveMessage);
+                }
+                catch (e) {
+                    saveMessage.innerHTML = "Quiz is too long! Save failed";
+                    menuCenter.appendChild(saveMessage);
+                }
+                if (menuCenter.childNodes.length > 1) {
+                    menuCenter.removeChild(menuCenter.firstChild);
+                }
+                break;
+            case createQuizVariable:
+                _url += createQuizVariable;
+                data = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: sessionStorage.getItem("user"),
+                        ready: "true",
+                        question: query.getAll("question"),
+                        answer: query.getAll("answer"),
+                    }),
+                };
+                await fetch(_url, data);
+                window.location.href = "../pages/create.html";
+                break;
+            case loadQuizVariable:
+                _url += loadQuizVariable;
+                data = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: sessionStorage.getItem("user"),
+                    }),
+                };
+                response = await fetch(_url, data);
+                let quiz = await response.json();
+                if (quiz != "0") {
+                    for (let i = 1; i <= quiz[1].length; i++) {
+                        addQuestion();
+                        let localQuestionArea = document.getElementById("questionArea" + i);
+                        let localAnswerArea = document.getElementById("answerArea" + i);
+                        localQuestionArea.value = quiz[0][i - 1];
+                        localAnswerArea.value = quiz[1][i - 1];
+                    }
+                }
+                else {
+                    addQuestion();
+                }
+                break;
+            case quizListVariable:
+                _url += quizListVariable;
+                response = await fetch(_url, { method: "POST" });
+                let quizDataArray = await response.json();
+                for (let i = 0; i < quizDataArray.length; i++) {
                     let quizRow = document.createElement("TR");
                     let quizNumber = document.createElement("TD");
                     let quizID = document.createElement("TD");
@@ -456,26 +474,34 @@ var nerdquiz;
                         window.location.href = "../pages/quiz.html";
                     }
                 }
-            }
-        }
-        if (_pathname == participantVariable) {
-            _url +=
-                participantVariable +
-                    "?" +
-                    query.toString() +
-                    "&username=" +
-                    sessionStorage.getItem("user") +
-                    "&roomnumber=" +
-                    sessionStorage.getItem("roomNumber");
-            response = await fetch(_url);
-        }
-        if (_pathname == answerVariable) {
-            _url += answerVariable + "?" + query.toString() + "&username=" + sessionStorage.getItem("user");
-            response = await fetch(_url);
-        }
-        if (_pathname == continueVariable) {
-            _url += continueVariable + "?";
-            response = await fetch(_url);
+                break;
+            case participantVariable:
+                _url += participantVariable;
+                data = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: sessionStorage.getItem("user"),
+                        roomnumber: sessionStorage.getItem("roomNumber"),
+                    }),
+                };
+                await fetch(_url, data);
+                break;
+            case answerVariable:
+                _url += answerVariable;
+                data = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: sessionStorage.getItem("user"),
+                        answer: query.get("answer"),
+                    }),
+                };
+                await fetch(_url, data);
+                break;
+            case continueVariable:
+                _url += continueVariable;
+                await fetch(_url, { method: "POST" });
         }
     }
 })(nerdquiz || (nerdquiz = {}));

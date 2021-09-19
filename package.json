@@ -8,6 +8,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "mongodb": "^4.0.0",
+    "mongoose": "^6.0.6",
     "optional-require": "^1.0.3",
     "requirejs": "^2.3.6",
     "safe-buffer": "^5.2.1",
@@ -20,7 +21,7 @@
   "name": "web-development",
   "description": "Webprojects",
   "version": "0.0.1",
-  "main": "index.js",
+  "main": "nerdquiz/js/server.js",
   "scripts": {
     "start": "node nerdquiz/js/server.js",
     "dev": "nodemon nerdquiz/js/server.js"

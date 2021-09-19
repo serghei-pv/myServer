@@ -1,42 +1,133 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.nerdquiz = void 0;
-const Http = require("http");
-const Url = require("url");
+const express = require("express");
+const cors = require("cors");
 const Mongo = require("mongodb");
+const Http = require("http");
 const Websocket = require("ws");
 var nerdquiz;
 (function (nerdquiz) {
-    //let dbURL: string = "mongodb://localhost:27017";
     let dbURL = "mongodb+srv://userGIS:GISecure@clusterraster.u3qcg.mongodb.net";
+    let dbClient = new Mongo.MongoClient(dbURL);
     let port = Number(process.env.PORT);
     if (!port)
         port = 8100;
     let userbase;
     let quiz;
     let backup;
-    let allUser;
     let allQuizzes;
     let participantsArray = [];
     let roomArray = [];
-    console.log("Starting server");
-    let server = Http.createServer();
-    server.addListener("listening", handleListen);
-    server.addListener("request", handleRequest);
-    server.listen(port);
-    connectToDb(dbURL);
+    connectToDb();
+    let app = express();
+    app.use(cors());
+    app.use(express.json());
+    let server = Http.createServer(app);
+    server.listen(port, () => console.log("A wild connection appeared!"));
     let wss = new Websocket.Server({ server });
-    async function connectToDb(_url) {
-        let options = { useNewUrlParser: true, useUnifiedTopology: true };
-        let mongoClient = new Mongo.MongoClient(_url, options);
-        await mongoClient.connect();
-        userbase = mongoClient.db("nerdquiz").collection("user");
-        quiz = mongoClient.db("nerdquiz").collection("quizzes");
-        backup = mongoClient.db("nerdquiz").collection("backup");
-    }
-    function handleListen() {
-        console.log("Looking for Action");
-    }
+    app.post("/login", (req, res) => {
+        getUser(req.body.username).then(function (data) {
+            if (data != null) {
+                res.status(200).send(req.body.username);
+            }
+        });
+    });
+    app.post("/save", (req, res) => {
+        getQuiz(req.body.username).then(function (data) {
+            if (data != null) {
+                quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer } });
+                res.status(200).send("saved succesfully");
+            }
+            else {
+                quiz.insertOne({ username: req.body.username, question: req.body.question, answer: req.body.answer, ready: "false" });
+            }
+        });
+    });
+    app.post("/create", (req, res) => {
+        getQuiz(req.body.username).then(function (data) {
+            if (data != null) {
+                quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
+                res.status(200).send("quiz created succesfully");
+            }
+            else {
+                quiz.insertOne({ username: req.body.username, question: req.body.question, answer: req.body.answer, ready: "true" });
+            }
+        });
+    });
+    app.post("/load", (req, res) => {
+        getQuizQA(req.body.username).then(function (data) {
+            if (data != null) {
+                res.status(200).send(JSON.stringify(data));
+            }
+            else {
+                res.status(200).send("0");
+            }
+        });
+    });
+    app.post("/quizList", (req, res) => {
+        getQuizAll().then(function (data) {
+            res.status(200).send(JSON.stringify(data));
+            for (let key in data) {
+                let userlist = [];
+                for (let user in participantsArray) {
+                    if (JSON.stringify(data[key]._id) == JSON.stringify(participantsArray[user].roomnumber)) {
+                        userlist.push(participantsArray[user].username);
+                    }
+                }
+                let room = { roomnumber: JSON.parse(JSON.stringify(allQuizzes[key]._id)), userlist: userlist };
+                roomArray[key] = room;
+            }
+        });
+    });
+    app.post("/participant", (req) => {
+        let counter = 0;
+        for (let key in participantsArray) {
+            if (participantsArray[key].username == req.body.username) {
+                counter++;
+            }
+        }
+        if (counter == 0) {
+            participantsArray.push({
+                username: req.body.username,
+                points: 0,
+                answer: "",
+                roomnumber: req.body.roomnumber,
+                lock: "false",
+            });
+            backup.insertOne({
+                username: req.body.username,
+                points: 0,
+                answer: [],
+                roomnumber: req.body.roomnumber,
+                lock: "false",
+            });
+        }
+    });
+    app.post("/answer", (req) => {
+        for (let key in participantsArray) {
+            if (participantsArray[key].username == req.body.username) {
+                participantsArray[key].answer = req.body.answer;
+                participantsArray[key].lock = "true";
+            }
+        }
+    });
+    app.post("/continue", () => {
+        for (let key in participantsArray) {
+            backup.updateOne({ username: participantsArray[key].username }, {
+                $set: {
+                    points: participantsArray[key].points,
+                    roomnumber: participantsArray[key].roomnumber,
+                    lock: participantsArray[key].lock,
+                },
+                $push: {
+                    answer: participantsArray[key].answer,
+                },
+            });
+            participantsArray[key].lock = "false";
+            participantsArray[key].answer = "";
+        }
+    });
     wss.on("connection", async (socket) => {
         console.log("User Connected");
         socket.on("message", async (message) => {
@@ -61,154 +152,57 @@ var nerdquiz;
             wss.send(JSON.stringify(participantsArray));
         });
     }, 100);
-    async function handleRequest(_request, _response) {
-        console.log("Action recieved");
-        _response.setHeader("Access-Control-Allow-Origin", "*");
-        _response.setHeader("content-type", "text/html; charset=utf-8");
-        if (_request.url) {
-            let url = Url.parse(_request.url, true);
-            let userbaseCursor = userbase.find();
-            let allQuizzesCursor = quiz.find();
-            allUser = await userbaseCursor.toArray();
-            allQuizzes = await allQuizzesCursor.toArray();
-            if (url.pathname == "/login") {
-                let counter = 0;
-                for (let i in allUser) {
-                    if (allUser[i].username == url.query.username) {
-                        if (allUser[i].password == url.query.password) {
-                            _response.write(url.query.username);
-                            break;
-                        }
-                        else {
-                            _response.write("Wrong username or password!");
-                            break;
-                        }
-                    }
-                    counter++;
-                    if (counter == allUser.length) {
-                        _response.write("Wrong username or password!");
-                    }
-                }
-            }
-            if (url.pathname == "/register") {
-                if (allUser.length == 0) {
-                    userbase.insertOne(url.query);
-                    _response.write(url.query.username);
-                }
-                else {
-                    for (let key in allUser) {
-                        if (allUser[key].username == url.query.username) {
-                            _response.write("Username already exists!");
-                            break;
-                        }
-                        if (allUser[key].username != url.query.username) {
-                            userbase.insertOne(url.query);
-                            _response.write(url.query.username);
-                            break;
-                        }
-                    }
-                }
-            }
-            if (url.pathname == "/create") {
-                let status = 0;
-                for (let key in allQuizzes) {
-                    if (allQuizzes[key].user == url.query.user && allQuizzes[key].ready == "false") {
-                        quiz.updateOne({ _id: allQuizzes[key]._id }, { $set: { question: url.query.q, answer: url.query.a, ready: url.query.ready } });
-                        status = 1;
-                    }
-                }
-                if (status == 0) {
-                    quiz.insertOne(url.query);
-                }
-            }
-            if (url.pathname == "/save") {
-                let status = 0;
-                for (let key in allQuizzes) {
-                    if (allQuizzes[key].user == url.query.user && allQuizzes[key].ready == "false") {
-                        quiz.updateOne({ _id: allQuizzes[key]._id }, { $set: { question: url.query.q, answer: url.query.a } });
-                        status = 1;
-                    }
-                }
-                if (status == 0) {
-                    quiz.insertOne(url.query);
-                }
-            }
-            if (url.pathname == "/load") {
-                _response.setHeader("content-type", "application/json");
-                let localQuiz = null;
-                for (let key in allQuizzes) {
-                    if (allQuizzes[key].user == url.query.user && allQuizzes[key].ready == "false") {
-                        localQuiz = allQuizzes[key];
-                        _response.write(JSON.stringify(localQuiz));
-                    }
-                }
-                if (localQuiz == null) {
-                    _response.write("0");
-                }
-            }
-            if (url.pathname == "/quizList") {
-                _response.setHeader("content-type", "application/json");
-                _response.write(JSON.stringify(allQuizzes));
-                for (let key in allQuizzes) {
-                    let userlist = [];
-                    for (let user in participantsArray) {
-                        if (JSON.stringify(allQuizzes[key]._id) == JSON.stringify(participantsArray[user].roomnumber)) {
-                            userlist.push(participantsArray[user].username);
-                        }
-                    }
-                    let room = { roomnumber: JSON.parse(JSON.stringify(allQuizzes[key]._id)), userlist: userlist };
-                    roomArray[key] = room;
-                }
-            }
-            if (url.pathname == "/participant") {
-                let counter = 0;
-                for (let key in participantsArray) {
-                    if (participantsArray[key].username == url.query.username) {
-                        counter++;
-                    }
-                }
-                if (counter == 0) {
-                    participantsArray.push({
-                        username: JSON.parse(JSON.stringify(url.query.username)),
-                        points: 0,
-                        answer: "",
-                        roomnumber: url.query.roomnumber,
-                        lock: "false",
-                    });
-                    backup.insertOne({
-                        username: JSON.parse(JSON.stringify(url.query.username)),
-                        points: 0,
-                        answer: [],
-                        roomnumber: url.query.roomnumber,
-                        lock: "false",
-                    });
-                }
-            }
-            if (url.pathname == "/answer") {
-                for (let key in participantsArray) {
-                    if (participantsArray[key].username == url.query.username) {
-                        participantsArray[key].answer = url.query.answer.toLocaleString();
-                        participantsArray[key].lock = "true";
-                    }
-                }
-            }
-            if (url.pathname == "/continue") {
-                for (let key in participantsArray) {
-                    backup.updateOne({ username: participantsArray[key].username }, {
-                        $set: {
-                            points: participantsArray[key].points,
-                            roomnumber: participantsArray[key].roomnumber,
-                            lock: participantsArray[key].lock,
-                        },
-                        $push: {
-                            answer: participantsArray[key].answer,
-                        },
-                    });
-                    participantsArray[key].lock = "false";
-                    participantsArray[key].answer = "";
-                }
-            }
-            _response.end();
+    async function connectToDb() {
+        await dbClient.connect();
+        userbase = dbClient.db("nerdquiz").collection("user");
+        quiz = dbClient.db("nerdquiz").collection("quizzes");
+        backup = dbClient.db("nerdquiz").collection("backup");
+    }
+    async function getUser(user) {
+        try {
+            let findUser = await userbase.findOne({
+                username: user,
+            });
+            return findUser.username;
+        }
+        catch (e) {
+            return null;
+        }
+    }
+    async function getQuiz(user) {
+        try {
+            let findQuiz = await quiz.findOne({
+                user: user,
+                ready: "false",
+            });
+            return findQuiz._id;
+        }
+        catch (e) {
+            return null;
+        }
+    }
+    async function getQuizQA(user) {
+        try {
+            let findQuiz = await quiz.findOne({
+                user: user,
+                ready: "false",
+            });
+            return [findQuiz.question, findQuiz.answer];
+        }
+        catch (e) {
+            return null;
+        }
+    }
+    async function getQuizAll() {
+        try {
+            let findQuiz = quiz.find({
+                ready: "true",
+            });
+            allQuizzes = await findQuiz.toArray();
+            return allQuizzes;
+        }
+        catch (e) {
+            return null;
         }
     }
 })(nerdquiz = exports.nerdquiz || (exports.nerdquiz = {}));
