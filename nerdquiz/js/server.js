@@ -29,7 +29,7 @@ var nerdquiz;
     app.post("/login", (req, res) => {
         getUser(req.body.username).then(function (data) {
             if (data != null) {
-                res.status(200).send(req.body.username);
+                res.send(req.body.username);
             }
         });
     });
@@ -37,7 +37,7 @@ var nerdquiz;
         getQuiz(req.body.username).then(function (data) {
             if (data != null) {
                 quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer } });
-                res.status(200).send("saved succesfully");
+                res.send("saved succesfully");
             }
             else {
                 quiz.insertOne({ username: req.body.username, question: req.body.question, answer: req.body.answer, ready: "false" });
@@ -48,7 +48,7 @@ var nerdquiz;
         getQuiz(req.body.username).then(function (data) {
             if (data != null) {
                 quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
-                res.status(200).send("quiz created succesfully");
+                res.send("quiz created succesfully");
             }
             else {
                 quiz.insertOne({ username: req.body.username, question: req.body.question, answer: req.body.answer, ready: "true" });
@@ -58,16 +58,16 @@ var nerdquiz;
     app.post("/load", (req, res) => {
         getQuizQA(req.body.username).then(function (data) {
             if (data != null) {
-                res.status(200).send(JSON.stringify(data));
+                res.send(JSON.stringify(data));
             }
             else {
-                res.status(200).send("0");
+                res.send("0");
             }
         });
     });
     app.post("/quizList", (req, res) => {
         getQuizAll().then(function (data) {
-            res.status(200).send(JSON.stringify(data));
+            res.send(JSON.stringify(data));
             for (let key in data) {
                 let userlist = [];
                 for (let user in participantsArray) {
@@ -129,7 +129,6 @@ var nerdquiz;
         }
     });
     wss.on("connection", async (socket) => {
-        console.log("User Connected");
         socket.on("message", async (message) => {
             for (let key in participantsArray) {
                 if (JSON.parse(message.toLocaleString()).username == participantsArray[key].username) {
@@ -142,9 +141,6 @@ var nerdquiz;
                     }
                 }
             }
-        });
-        socket.on("close", () => {
-            console.log("User Disconnected");
         });
     });
     setInterval(() => {

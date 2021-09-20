@@ -1,28 +1,15 @@
 namespace nerdquiz {
   let currentPage: string = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
-
-  let indexMenu: HTMLUListElement = <HTMLUListElement>document.getElementById("indexMenu");
-  let menuCenter: HTMLElement = <HTMLElement>document.getElementById("menuCenter");
-  let indexMain: HTMLElement = <HTMLElement>document.getElementById("indexMain");
-  let leftMain: HTMLUListElement = <HTMLUListElement>document.getElementById("leftMain");
-  let loginButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("loginButton");
   let createQuizForm: HTMLFormElement = <HTMLFormElement>document.getElementById("createQuizForm");
-  let addQuestionButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("addQuestionButton");
-  let removeQuestionButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("removeQuestionButton");
-  let createQuiz: HTMLButtonElement = <HTMLButtonElement>document.getElementById("createQuiz");
-  let saveQuiz: HTMLButtonElement = <HTMLButtonElement>document.getElementById("saveQuiz");
-  let quizList: HTMLUListElement = <HTMLUListElement>document.getElementById("quizList");
   let quizTop: HTMLDivElement = <HTMLDivElement>document.getElementById("quizTop");
   let quizBottom: HTMLDivElement = <HTMLDivElement>document.getElementById("quizBottom");
-  let quizFooter: HTMLElement = <HTMLElement>document.getElementById("quizFooter");
   let questionDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("questionDisplay");
   let answerDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("answerDisplay");
   let questionNumberDisplay: HTMLDivElement = <HTMLDivElement>document.getElementById("questionNumberDisplay");
 
   let createQuestionsCounter: number = 1;
   let questionCounter: number = 0;
-  let heightLimit: number = 50;
-  let filledTextAreaArray: HTMLTextAreaElement[] = new Array();
+  let filledTextAreaArray: HTMLTextAreaElement[] = [];
 
   let ws = new WebSocket("wss://wb-s.herokuapp.com/");
   let host: string = "https://wb-s.herokuapp.com/";
@@ -38,17 +25,8 @@ namespace nerdquiz {
   let answerVariable: string = "answer";
   let continueVariable: string = "continue";
 
-  if (sessionStorage.getItem("login") != "true") {
-    indexMenu.style.visibility = "hidden";
-  }
-
   if (currentPage == "index.html" || currentPage == "") {
-    loginButton.addEventListener("click", processLogin);
-    if (sessionStorage.getItem("login") == "true") {
-      for (let i: number = indexMain.childNodes.length; i > 0; i--) {
-        indexMain.removeChild(indexMain.lastChild);
-      }
-    }
+    document.getElementById("loginButton").addEventListener("click", processLogin);
   }
 
   if (currentPage == "rooms.html") {
@@ -57,37 +35,28 @@ namespace nerdquiz {
 
   if (currentPage == "create.html") {
     window.addEventListener("load", processLoadQuiz);
-    addQuestionButton.addEventListener("click", addQuestion);
-    removeQuestionButton.addEventListener("click", removeQuestion);
-    createQuiz.addEventListener("click", processCreateQuiz);
-    saveQuiz.addEventListener("click", processSaveQuiz);
+    document.getElementById("addQuestionButton").addEventListener("click", addQuestion);
+    document.getElementById("removeQuestionButton").addEventListener("click", removeQuestion);
+    document.getElementById("createQuiz").addEventListener("click", processCreateQuiz);
+    document.getElementById("saveQuiz").addEventListener("click", processSaveQuiz);
   }
 
-  if (currentPage == "quiz.html") {
-    if (sessionStorage.getItem("quiz") != null) {
-      hostQuiz();
-      manageQuiz();
-    }
+  if (currentPage == "host.html") {
+    hostQuiz();
+    manageQuiz();
+  }
 
-    if (sessionStorage.getItem("quiz") == null) {
-      participateQuiz();
-      processParticipant();
-    }
-
-    let roomNumber: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
-    roomNumber.innerHTML = sessionStorage.getItem("roomNumber");
-    roomNumber.id = "roomNumber";
-    menuCenter.appendChild(roomNumber);
+  if (currentPage == "participant.html") {
+    processParticipant();
+    participateQuiz();
   }
 
   function hostQuiz(): void {
     document.getElementById("nextQuestion").style.visibility = "visible";
     document.getElementById("nextQuestion").addEventListener("click", processContinue);
-
-    quizFooter.appendChild(questionNumberDisplay);
+    document.getElementById("quizFooter").appendChild(questionNumberDisplay);
     quizTop.appendChild(questionDisplay);
     quizTop.appendChild(answerDisplay);
-
     displayQuestion();
   }
 
@@ -98,6 +67,7 @@ namespace nerdquiz {
     ws.addEventListener("message", ({ data }) => {
       for (let i: number = 0; i < JSON.parse(data).length; i++) {
         if (sessionStorage.getItem("roomNumber") == JSON.parse(data)[i].roomnumber) {
+          let leftMain: HTMLUListElement = <HTMLUListElement>document.getElementById("leftMain");
           let participantContainer: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
           let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
           let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
@@ -297,10 +267,8 @@ namespace nerdquiz {
     createSlot.appendChild(questionArea);
     createSlot.appendChild(answerArea);
 
-    questionArea.addEventListener("input", autoExpand);
-    answerArea.addEventListener("input", autoExpand);
-
     window.scrollTo(0, document.body.scrollHeight);
+    questionArea.focus();
     createQuestionsCounter++;
   }
 
@@ -344,9 +312,11 @@ namespace nerdquiz {
   }
 
   function autoExpand(): void {
+    let heightLimit: number = 60;
     document.querySelector("textarea").style.height = "";
     document.querySelector("textarea").style.height = Math.min(document.querySelector("textarea").scrollHeight, heightLimit) + "px";
   }
+
   function processLogin(): void {
     processRequest(host, loginVariable);
   }
@@ -363,14 +333,7 @@ namespace nerdquiz {
       processRequest(host, createQuizVariable);
       filledTextAreaArray.length = 0;
     } else {
-      let alertMessage: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
-      alertMessage.className = "alertMessage";
-      alertMessage.innerHTML = "Fill Out Everything!";
-      menuCenter.appendChild(alertMessage);
-
-      if (menuCenter.childNodes.length > 1) {
-        menuCenter.removeChild(menuCenter.firstChild);
-      }
+      console.log("Fill out everything!");
     }
   }
   function processSaveQuiz(): void {
@@ -428,6 +391,7 @@ namespace nerdquiz {
         break;
 
       case saveQuizVariable:
+        let menuCenter: HTMLElement = <HTMLElement>document.getElementById("menuCenter");
         let saveMessage: HTMLSpanElement = <HTMLSpanElement>document.createElement("SPAN");
         saveMessage.className = "alertMessage";
 
@@ -512,6 +476,7 @@ namespace nerdquiz {
         let quizDataArray = await response.json();
 
         for (let i: number = 0; i < quizDataArray.length; i++) {
+          let quizList: HTMLUListElement = <HTMLUListElement>document.getElementById("quizList");
           let quizRow: HTMLTableRowElement = <HTMLTableRowElement>document.createElement("TR");
           let quizNumber: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
           let quizID: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
@@ -529,7 +494,7 @@ namespace nerdquiz {
           quizQuestionAmount.innerHTML = quizDataArray[i].question.length;
           quizSubmitter.innerHTML = quizDataArray[i].user;
 
-          quizList.appendChild(quizRow);
+          quizList.insertBefore(quizRow, quizList.childNodes[2]);
           quizRow.appendChild(quizNumber);
           quizRow.appendChild(quizID);
           quizRow.appendChild(quizQuestionAmount);
@@ -538,15 +503,16 @@ namespace nerdquiz {
           function loadQuiz(): void {
             if (sessionStorage.getItem("user") == quizDataArray[i].user) {
               sessionStorage.setItem("quiz", JSON.stringify(quizDataArray[i]));
+              window.location.href = "../pages/host.html";
             } else {
               sessionStorage.setItem("quizLength", quizDataArray[i].question.length);
+              window.location.href = "../pages/participant.html";
 
               if (sessionStorage.getItem("quiz") != null) {
                 sessionStorage.removeItem("quiz");
               }
             }
             sessionStorage.setItem("roomNumber", quizDataArray[i]._id);
-            window.location.href = "../pages/quiz.html";
           }
         }
         break;

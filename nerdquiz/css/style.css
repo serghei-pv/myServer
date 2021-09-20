@@ -14,8 +14,6 @@ html {
 
 body {
   height: 100%;
-  margin: 0;
-  padding: 0;
 }
 
 main {
@@ -26,7 +24,6 @@ footer {
   bottom: 0;
   width: 100%;
   position: fixed;
-  text-align: left;
 }
 
 a {
@@ -38,11 +35,6 @@ a {
   color: white;
 }
 
-ul {
-  padding: 0;
-  margin: 0;
-}
-
 li {
   list-style: none;
 }
@@ -50,20 +42,15 @@ li {
 .menuContainer {
   background-color: #171719;
   display: flex;
+  justify-content: center;
   position: fixed;
   width: 100%;
-  padding-top: 1%;
-  padding-bottom: 1%;
+  padding: 1% 0 1% 0;
 }
 
-.menu,
-#indexMenu {
-  display: flex;
-  justify-content: space-between;
-  order: 1;
-  width: 15%;
-  border-bottom: 2px solid #929292;
-  margin-left: 2%;
+.menu li {
+  margin-left: 25px;
+  margin-right: 25px;
 }
 
 .emptyMenuCenter {
@@ -80,28 +67,33 @@ li {
 
 .mainContainer {
   display: flex;
-  padding-top: 10%;
+  flex-wrap: wrap;
 }
 
-.mainCenter {
+.mainCenterHost {
   order: 2;
   height: 100%;
-  width: 62%;
-  margin-left: 2%;
-  margin-right: 2%;
+  width: 58%;
+  padding: 200px 0 0 0;
+  margin: 0 21% 0 1%;
+}
+
+.mainCenterParticipant {
+  height: 100%;
+  width: 60%;
+  padding: 200px 0 0 0;
+  margin: auto;
 }
 
 .leftMain {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 20%;
   order: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   height: 100%;
-  width: 15%;
-  margin-left: 2%;
+  padding: 200px 0 0 0;
+  width: 19%;
+  margin: 0 0 0 1%;
 }
 
 #leftMain {
@@ -110,9 +102,9 @@ li {
 
 #quizList {
   order: 2;
-  width: 64%;
-  margin-left: 2%;
-  margin-right: 2%;
+  width: 100%;
+  padding: 150px 0 0 0;
+  margin: 0 20% 0 20%;
   text-align: left;
   table-layout: fixed;
 }
@@ -133,16 +125,14 @@ li {
 
 h1 {
   font-size: 30px;
-  padding-bottom: 3%;
+  padding: 0 0 3% 0;
 }
 
 #createQuizForm {
-  order: 2;
   height: 100%;
-  width: 64%;
-  margin-left: 2%;
-  margin-right: 2%;
-  margin-bottom: 10%;
+  width: 80%;
+  margin: auto;
+  padding: 100px 0 100px 0;
 }
 
 textarea {
@@ -169,15 +159,21 @@ textarea:focus {
 
 .questionArea {
   height: 20px;
-  width: 70%;
-  margin-right: 5%;
-  margin-bottom: 2%;
+  width: 75%;
+  margin: 0 5% 15px 0;
 }
 
 .answerArea {
   height: 20px;
   width: 20%;
-  margin-bottom: 2%;
+  margin: 0 0 15px 0;
+}
+
+.createMenu {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 10px 0;
+  background-color: #101011;
 }
 
 #addQuestionButton {
@@ -187,10 +183,18 @@ textarea:focus {
   order: 2;
 }
 #saveQuiz {
-  order: 1;
+  order: 3;
 }
 #createQuiz {
-  order: 2;
+  order: 4;
+}
+
+#createQuestionTextarea,
+#addQuestionButton,
+#removeQuestionButton,
+#saveQuiz,
+#createQuiz {
+  margin: 0 5px 0 0;
 }
 
 #previousQuestion,
@@ -201,7 +205,7 @@ textarea:focus {
 #createQuiz,
 .submitButton {
   font-family: Montserrat;
-  width: 7%;
+  width: 100px;
   height: 50px;
   border: 2px solid black;
   border-radius: 5px 5px 5px 5px;
@@ -211,22 +215,14 @@ textarea:focus {
   background-color: #262626;
 }
 
-#addQuestionButton,
-#removeQuestionButton,
-#saveQuiz,
-#createQuiz {
-  margin-top: 5%;
-  width: 50%;
-}
-
 .lr {
   margin: auto;
-  padding-top: 10%;
+  padding: 10% 0 0 0;
   width: 350px;
 }
 
 .lrPassive {
-  padding-top: -100%;
+  padding: -100% 0 0 0;
 }
 
 .lrInputDiv {
@@ -245,14 +241,14 @@ textarea:focus {
 }
 
 .lrButtonDiv {
-  padding-top: 10%;
+  padding: 10% 0 0 0;
 }
 
 .lrButton {
   font-family: Montserrat;
   width: 40%;
   height: 50px;
-  margin-top: 5%;
+  margin: 5% 0 0 0;
   border: 2px solid black;
   border-radius: 5px 5px 5px 5px;
   color: white;
@@ -300,14 +296,14 @@ textarea:focus {
 
 .quizTable {
   height: 50px;
-  padding-bottom: 5%;
+  padding: 0 0 5% 0;
   background-color: rgba(255, 255, 255, 0.3);
   font-size: 1em;
   text-transform: uppercase;
 }
 
 .quizTable th {
-  padding: 20px 15px;
+  padding: 20px 15px 0 0;
 }
 
 .quizRow td {
@@ -332,8 +328,7 @@ textarea:focus {
 #quizTop {
   position: relative;
   height: 300px;
-  margin: 5%;
-  margin-top: 0;
+  margin: 0 5% 5% 5%;
   text-align: left;
   width: 90%;
   border-bottom: 2px solid rgba(255, 255, 255, 0.199);
@@ -351,8 +346,7 @@ textarea:focus {
 
 #answerDisplay {
   font-size: 20px;
-  padding-top: 15px;
-  padding-bottom: 15px;
+  padding: 15px 0 15px 0;
   position: absolute;
   bottom: 0;
 }
@@ -373,20 +367,20 @@ textarea:focus {
 #previousQuestion {
   order: 1;
   font-size: 20px;
-  margin-right: 5%;
+  margin: 0 5% 0 0;
   visibility: hidden;
 }
 
 #questionNumberDisplay {
   order: 2;
   font-size: 40px;
-  margin-bottom: 10px;
+  margin: 0 0 10px 0;
 }
 
 #nextQuestion {
   order: 3;
   font-size: 20px;
-  margin-left: 5%;
+  margin: 0 0 0 5%;
   visibility: hidden;
 }
 
@@ -395,7 +389,7 @@ textarea:focus {
 }
 
 .participantsTextarea {
-  margin-top: 100px;
+  margin: 100px 0 0 0;
   height: 20px;
   width: 80%;
 }
@@ -405,7 +399,7 @@ textarea:focus {
 }
 
 .submitButton {
-  margin-top: 50px;
+  margin: 50px 0 0 0;
   width: 30%;
   border-radius: 5px 5px 5px 5px;
 }
@@ -423,8 +417,7 @@ textarea:focus {
 
 #participantsArea {
   order: 2;
-  margin: 5%;
-  margin-top: 0;
+  margin: 0 5% 5% 5%;
   width: 50%;
   text-align: right;
 }
@@ -444,7 +437,7 @@ textarea:focus {
 .participantAddPoint,
 .participantUnlock {
   cursor: pointer;
-  margin-right: 2%;
+  margin: 0 2% 0 0;
   width: 5%;
   border: 2px solid white;
   background-color: transparent;
@@ -481,7 +474,7 @@ textarea:focus {
 
 .participantAnswerName {
   order: 1;
-  margin-right: 2%;
+  margin: 0 2% 0 0;
 }
 .participantUnlock {
   order: 2;
@@ -502,7 +495,7 @@ textarea:focus {
 .participantAnswer {
   order: 7;
   width: 100%;
-  padding-top: 20px;
+  padding: 20px 0 0 0;
   font-size: 20px;
   word-wrap: break-word; /* IE 5.5-7 */
   white-space: -moz-pre-wrap; /* Firefox 1.0-2.0 */
@@ -510,7 +503,7 @@ textarea:focus {
 }
 
 .participantContainer {
-  margin-bottom: 7%;
+  margin: 0 0 7% 0;
   border-bottom: 2px solid #929292;
   cursor: pointer;
 }
