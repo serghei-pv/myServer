@@ -12,7 +12,6 @@ export namespace nerdquiz {
   if (!port) port = 8100;
   let userbase: Mongo.Collection;
   let quiz: Mongo.Collection;
-  let backup: Mongo.Collection;
   let allQuizzes: Quiz[];
   let participantsArray: Participant[] = [];
   let roomArray: Room[] = [];
@@ -84,89 +83,10 @@ export namespace nerdquiz {
     });
   });
 
-  app.post("/participant", (req) => {
-    let counter: number = 0;
-
-    for (let key in participantsArray) {
-      if (participantsArray[key].username == req.body.username) {
-        counter++;
-      }
-    }
-    if (counter == 0) {
-      participantsArray.push({
-        username: req.body.username,
-        points: 0,
-        answer: "",
-        roomnumber: req.body.roomnumber,
-        lock: "false",
-      });
-      backup.insertOne({
-        username: req.body.username,
-        points: 0,
-        answer: [],
-        roomnumber: req.body.roomnumber,
-        lock: "false",
-      });
-    }
-  });
-
-  app.post("/answer", (req) => {
-    for (let key in participantsArray) {
-      if (participantsArray[key].username == req.body.username) {
-        participantsArray[key].answer = req.body.answer;
-        participantsArray[key].lock = "true";
-      }
-    }
-  });
-
-  app.post("/continue", () => {
-    for (let key in participantsArray) {
-      backup.updateOne(
-        { username: participantsArray[key].username },
-        {
-          $set: {
-            points: participantsArray[key].points,
-            roomnumber: participantsArray[key].roomnumber,
-            lock: participantsArray[key].lock,
-          },
-          $push: {
-            answer: participantsArray[key].answer,
-          },
-        }
-      );
-
-      participantsArray[key].lock = "false";
-      participantsArray[key].answer = "";
-    }
-  });
-
-  wss.on("connection", async (socket) => {
-    socket.on("message", async (message) => {
-      for (let key in participantsArray) {
-        if (JSON.parse(message.toLocaleString()).username == participantsArray[key].username) {
-          if (JSON.parse(message.toLocaleString()).points != null) {
-            participantsArray[key].points += JSON.parse(message.toLocaleString()).points;
-          }
-          if (JSON.parse(message.toLocaleString()).lock != null && participantsArray[key].lock != "false") {
-            participantsArray[key].lock = JSON.parse(message.toLocaleString()).lock;
-            participantsArray[key].answer = "";
-          }
-        }
-      }
-    });
-  });
-
-  setInterval(() => {
-    wss.clients.forEach(async (wss) => {
-      wss.send(JSON.stringify(participantsArray));
-    });
-  }, 100);
-
   async function connectToDb(): Promise<void> {
     await dbClient.connect();
     userbase = dbClient.db("nerdquiz").collection("user");
     quiz = dbClient.db("nerdquiz").collection("quizzes");
-    backup = dbClient.db("nerdquiz").collection("backup");
   }
 
   async function getUser(user: string): Promise<void> {
@@ -215,4 +135,64 @@ export namespace nerdquiz {
       return null;
     }
   }
+
+  wss.on("connection", async (socket: Websocket) => {
+    socket.on("message", async (message: Websocket.Data) => {
+      let data = JSON.parse(message.toLocaleString());
+      switch (data.type) {
+        case "change":
+          for (let key in participantsArray) {
+            if (data.username == participantsArray[key].username) {
+              if (data.points != null) {
+                participantsArray[key].points += data.points;
+              }
+              if (data.lock != null && participantsArray[key].lock != "false") {
+                participantsArray[key].lock = data.lock;
+                participantsArray[key].answer = "";
+              }
+            }
+          }
+          break;
+
+        case "participant":
+          let counter: number = 0;
+
+          for (let key in participantsArray) {
+            if (participantsArray[key].username == data.username) {
+              counter++;
+            }
+          }
+          if (counter == 0) {
+            participantsArray.push({
+              username: data.username,
+              points: 0,
+              answer: "",
+              roomnumber: data.roomnumber,
+              lock: "false",
+            });
+          }
+
+          break;
+
+        case "answer":
+          for (let key in participantsArray) {
+            if (participantsArray[key].username == data.username) {
+              participantsArray[key].answer = data.answer;
+              participantsArray[key].lock = "true";
+            }
+          }
+          break;
+
+        case "continue":
+          for (let key in participantsArray) {
+            participantsArray[key].lock = "false";
+            participantsArray[key].answer = "";
+          }
+      }
+
+      wss.clients.forEach(async (wss: Websocket) => {
+        wss.send(JSON.stringify(participantsArray));
+      });
+    });
+  });
 }

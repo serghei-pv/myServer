@@ -20,29 +20,36 @@ var nerdquiz;
     let saveQuizVariable = "save";
     let loadQuizVariable = "load";
     let quizListVariable = "quizList";
-    let participantVariable = "participant";
-    let answerVariable = "answer";
-    let continueVariable = "continue";
-    if (currentPage == "index.html" || currentPage == "") {
-        document.getElementById("loginButton").addEventListener("click", processLogin);
-    }
-    if (currentPage == "rooms.html") {
-        window.addEventListener("load", processQuizList);
-    }
-    if (currentPage == "create.html") {
-        window.addEventListener("load", processLoadQuiz);
-        document.getElementById("addQuestionButton").addEventListener("click", addQuestion);
-        document.getElementById("removeQuestionButton").addEventListener("click", removeQuestion);
-        document.getElementById("createQuiz").addEventListener("click", processCreateQuiz);
-        document.getElementById("saveQuiz").addEventListener("click", processSaveQuiz);
-    }
-    if (currentPage == "host.html") {
-        hostQuiz();
-        manageQuiz();
-    }
-    if (currentPage == "participant.html") {
-        processParticipant();
-        participateQuiz();
+    window.addEventListener("load", pageCheck);
+    function pageCheck() {
+        switch (currentPage) {
+            case "index.html":
+                document.getElementById("loginButton").addEventListener("click", processLogin);
+                break;
+            case "rooms.html":
+                processQuizList();
+                break;
+            case "create.html":
+                window.addEventListener("load", processLoadQuiz);
+                document.getElementById("addQuestionButton").addEventListener("click", addQuestion);
+                document.getElementById("removeQuestionButton").addEventListener("click", removeQuestion);
+                document.getElementById("createQuiz").addEventListener("click", processCreateQuiz);
+                document.getElementById("saveQuiz").addEventListener("click", processSaveQuiz);
+                break;
+            case "host.html":
+                hostQuiz();
+                manageQuiz();
+                ws.send(JSON.stringify({}));
+                break;
+            case "participant.html":
+                participateQuiz();
+                ws.send(JSON.stringify({
+                    type: "participant",
+                    username: sessionStorage.getItem("user"),
+                    roomnumber: sessionStorage.getItem("roomNumber"),
+                }));
+                break;
+        }
     }
     function hostQuiz() {
         document.getElementById("nextQuestion").style.visibility = "visible";
@@ -70,11 +77,11 @@ var nerdquiz;
                     let participantSubHalfPoint = document.createElement("BUTTON");
                     let participantAddHalfPoint = document.createElement("BUTTON");
                     let participantUnlock = document.createElement("BUTTON");
-                    let subPoint = { username: JSON.parse(data)[i].username, points: -1 };
-                    let subHalfPoint = { username: JSON.parse(data)[i].username, points: -0.5 };
-                    let addHalfPoint = { username: JSON.parse(data)[i].username, points: +0.5 };
-                    let addPoint = { username: JSON.parse(data)[i].username, points: +1 };
-                    let unlockAnswer = { username: JSON.parse(data)[i].username, lock: "false" };
+                    let subPoint = { type: "change", username: JSON.parse(data)[i].username, points: -1 };
+                    let subHalfPoint = { type: "change", username: JSON.parse(data)[i].username, points: -0.5 };
+                    let addHalfPoint = { type: "change", username: JSON.parse(data)[i].username, points: +0.5 };
+                    let addPoint = { type: "change", username: JSON.parse(data)[i].username, points: +1 };
+                    let unlockAnswer = { type: "change", username: JSON.parse(data)[i].username, lock: "false" };
                     if (i == leftMain.childNodes.length) {
                         participantContainer.id = "participantContainer" + i;
                         participantName.id = "name" + i;
@@ -123,6 +130,7 @@ var nerdquiz;
                             quizBottom.appendChild(answerContainer);
                             participantAnswerName.innerHTML = JSON.parse(data)[i].username;
                             participantAnswer.innerHTML = JSON.parse(data)[i].answer;
+                            ws.send(JSON.stringify({}));
                         }
                     }
                     function subPoints() {
@@ -298,19 +306,24 @@ var nerdquiz;
     function processQuizList() {
         processRequest(host, quizListVariable);
     }
-    function processParticipant() {
-        processRequest(host, participantVariable);
-    }
     function processAnswer() {
+        let formData = new FormData(document.forms[0]);
+        let query = new URLSearchParams(formData);
         if (document.querySelector("textarea").value != "") {
-            processRequest(host, answerVariable);
+            ws.send(JSON.stringify({
+                type: "answer",
+                username: sessionStorage.getItem("user"),
+                answer: query.get("answer"),
+            }));
         }
         else {
             console.log("test");
         }
     }
     function processContinue() {
-        processRequest(host, continueVariable);
+        ws.send(JSON.stringify({
+            type: "continue",
+        }));
         quizBottom.innerHTML = "";
     }
     async function processRequest(_url, _pathname) {
@@ -447,33 +460,6 @@ var nerdquiz;
                     }
                 }
                 break;
-            case participantVariable:
-                _url += participantVariable;
-                data = {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        username: sessionStorage.getItem("user"),
-                        roomnumber: sessionStorage.getItem("roomNumber"),
-                    }),
-                };
-                await fetch(_url, data);
-                break;
-            case answerVariable:
-                _url += answerVariable;
-                data = {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        username: sessionStorage.getItem("user"),
-                        answer: query.get("answer"),
-                    }),
-                };
-                await fetch(_url, data);
-                break;
-            case continueVariable:
-                _url += continueVariable;
-                await fetch(_url, { method: "POST" });
         }
     }
 })(nerdquiz || (nerdquiz = {}));
