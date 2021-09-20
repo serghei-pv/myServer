@@ -3,7 +3,7 @@ import * as cors from "cors";
 import * as Mongo from "mongodb";
 import * as Http from "http";
 import * as Websocket from "ws";
-import { Quiz, Participant, Room } from "../js/interface";
+import { Quiz, Participant } from "../js/interface";
 
 export namespace nerdquiz {
   let dbURL: string = "mongodb+srv://userGIS:GISecure@clusterraster.u3qcg.mongodb.net";
@@ -14,7 +14,6 @@ export namespace nerdquiz {
   let quiz: Mongo.Collection;
   let allQuizzes: Quiz[];
   let participantsArray: Participant[] = [];
-  let roomArray: Room[] = [];
 
   connectToDb();
   let app = express();
@@ -60,25 +59,6 @@ export namespace nerdquiz {
         res.send(JSON.stringify(data));
       } else {
         res.send("0");
-      }
-    });
-  });
-
-  app.post("/quizList", (req, res) => {
-    getQuizAll().then(function (data) {
-      res.send(JSON.stringify(data));
-
-      for (let key in data) {
-        let userlist: string[] = [];
-
-        for (let user in participantsArray) {
-          if (JSON.stringify(data[key]._id) == JSON.stringify(participantsArray[user].roomnumber)) {
-            userlist.push(participantsArray[user].username);
-          }
-        }
-
-        let room: Room = { roomnumber: JSON.parse(JSON.stringify(allQuizzes[key]._id)), userlist: userlist };
-        roomArray[key] = room;
       }
     });
   });
@@ -154,12 +134,27 @@ export namespace nerdquiz {
           }
           break;
 
+        case "quizList":
+          getQuizAll().then(function (data) {
+            socket.send(JSON.stringify(data));
+          });
+          break;
+
         case "participant":
           let counter: number = 0;
 
           for (let key in participantsArray) {
             if (participantsArray[key].username == data.username) {
               counter++;
+              if (counter == 1 && participantsArray[key].roomnumber != data.roomnumber) {
+                participantsArray[key] = {
+                  username: data.username,
+                  points: 0,
+                  answer: "",
+                  roomnumber: data.roomnumber,
+                  lock: "false",
+                };
+              }
             }
           }
           if (counter == 0) {
@@ -171,7 +166,6 @@ export namespace nerdquiz {
               lock: "false",
             });
           }
-
           break;
 
         case "answer":
@@ -190,8 +184,8 @@ export namespace nerdquiz {
           }
       }
 
-      wss.clients.forEach(async (wss: Websocket) => {
-        wss.send(JSON.stringify(participantsArray));
+      wss.clients.forEach(async (socket: Websocket) => {
+        socket.send(JSON.stringify(participantsArray));
       });
     });
   });

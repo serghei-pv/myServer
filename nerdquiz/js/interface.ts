@@ -21,8 +21,3 @@ export interface Participant {
   roomnumber: string | string[];
   lock: string;
 }
-
-export interface Room {
-  roomnumber: string;
-  userlist: string[];
-}

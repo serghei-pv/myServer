@@ -17,7 +17,6 @@ var nerdquiz;
     let quiz;
     let allQuizzes;
     let participantsArray = [];
-    let roomArray = [];
     connectToDb();
     let app = express();
     app.use(cors());
@@ -61,21 +60,6 @@ var nerdquiz;
             }
             else {
                 res.send("0");
-            }
-        });
-    });
-    app.post("/quizList", (req, res) => {
-        getQuizAll().then(function (data) {
-            res.send(JSON.stringify(data));
-            for (let key in data) {
-                let userlist = [];
-                for (let user in participantsArray) {
-                    if (JSON.stringify(data[key]._id) == JSON.stringify(participantsArray[user].roomnumber)) {
-                        userlist.push(participantsArray[user].username);
-                    }
-                }
-                let room = { roomnumber: JSON.parse(JSON.stringify(allQuizzes[key]._id)), userlist: userlist };
-                roomArray[key] = room;
             }
         });
     });
@@ -148,11 +132,25 @@ var nerdquiz;
                         }
                     }
                     break;
+                case "quizList":
+                    getQuizAll().then(function (data) {
+                        socket.send(JSON.stringify(data));
+                    });
+                    break;
                 case "participant":
                     let counter = 0;
                     for (let key in participantsArray) {
                         if (participantsArray[key].username == data.username) {
                             counter++;
+                            if (counter == 1 && participantsArray[key].roomnumber != data.roomnumber) {
+                                participantsArray[key] = {
+                                    username: data.username,
+                                    points: 0,
+                                    answer: "",
+                                    roomnumber: data.roomnumber,
+                                    lock: "false",
+                                };
+                            }
                         }
                     }
                     if (counter == 0) {
@@ -179,8 +177,8 @@ var nerdquiz;
                         participantsArray[key].answer = "";
                     }
             }
-            wss.clients.forEach(async (wss) => {
-                wss.send(JSON.stringify(participantsArray));
+            wss.clients.forEach(async (socket) => {
+                socket.send(JSON.stringify(participantsArray));
             });
         });
     });
