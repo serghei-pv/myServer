@@ -21,7 +21,17 @@ namespace nerdquiz {
   let saveQuizVariable: string = "save";
   let loadQuizVariable: string = "load";
 
-  window.addEventListener("load", pageCheck);
+  window.addEventListener("load", waitForWebsocket);
+
+  function waitForWebsocket() {
+    setTimeout(function () {
+      if (ws.readyState === 1) {
+        pageCheck();
+      } else {
+        waitForWebsocket();
+      }
+    }, 5); // wait 5 milisecond for the connection...
+  }
 
   function pageCheck(): void {
     switch (currentPage) {
