@@ -1,5 +1,5 @@
 # Web-Development
 
-+ added,
-- removed,
-^ improved
+- "+" added,
+- "-" removed,
+- "^" improved
