@@ -37,7 +37,7 @@ export namespace nerdquiz {
         quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer } });
         res.send("saved succesfully");
       } else {
-        quiz.insertOne({ username: req.body.username, question: req.body.question, answer: req.body.answer, ready: "false" });
+        quiz.insertOne({ question: req.body.question, answer: req.body.answer, ready: "false", username: req.body.username });
       }
     });
   });
@@ -46,9 +46,9 @@ export namespace nerdquiz {
     getQuiz(req.body.username).then(function (data) {
       if (data != null) {
         quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
-        res.send("quiz created succesfully");
+        res.send("Quiz created succesfully");
       } else {
-        quiz.insertOne({ username: req.body.username, question: req.body.question, answer: req.body.answer, ready: "true" });
+        quiz.insertOne({ question: req.body.question, answer: req.body.answer, ready: "true", username: req.body.username });
       }
     });
   });
@@ -69,10 +69,10 @@ export namespace nerdquiz {
     quiz = dbClient.db("nerdquiz").collection("quizzes");
   }
 
-  async function getUser(user: string): Promise<void> {
+  async function getUser(username: string): Promise<void> {
     try {
       let findUser: Mongo.Document = await userbase.findOne({
-        username: user,
+        username: username,
       });
       return findUser.username;
     } catch (e) {
@@ -80,10 +80,10 @@ export namespace nerdquiz {
     }
   }
 
-  async function getQuiz(user: string): Promise<string> {
+  async function getQuiz(username: string): Promise<string> {
     try {
       let findQuiz: Mongo.Document = await quiz.findOne({
-        user: user,
+        username: username,
         ready: "false",
       });
       return findQuiz._id;
@@ -92,10 +92,10 @@ export namespace nerdquiz {
     }
   }
 
-  async function getQuizQA(user: string): Promise<string[]> {
+  async function getQuizQA(username: string): Promise<string[]> {
     try {
       let findQuiz: Mongo.Document = await quiz.findOne({
-        user: user,
+        username: username,
         ready: "false",
       });
       return [findQuiz.question, findQuiz.answer];

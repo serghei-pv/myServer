@@ -38,7 +38,7 @@ var nerdquiz;
                 res.send("saved succesfully");
             }
             else {
-                quiz.insertOne({ username: req.body.username, question: req.body.question, answer: req.body.answer, ready: "false" });
+                quiz.insertOne({ question: req.body.question, answer: req.body.answer, ready: "false", username: req.body.username });
             }
         });
     });
@@ -46,10 +46,10 @@ var nerdquiz;
         getQuiz(req.body.username).then(function (data) {
             if (data != null) {
                 quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
-                res.send("quiz created succesfully");
+                res.send("Quiz created succesfully");
             }
             else {
-                quiz.insertOne({ username: req.body.username, question: req.body.question, answer: req.body.answer, ready: "true" });
+                quiz.insertOne({ question: req.body.question, answer: req.body.answer, ready: "true", username: req.body.username });
             }
         });
     });
@@ -68,10 +68,10 @@ var nerdquiz;
         userbase = dbClient.db("nerdquiz").collection("user");
         quiz = dbClient.db("nerdquiz").collection("quizzes");
     }
-    async function getUser(user) {
+    async function getUser(username) {
         try {
             let findUser = await userbase.findOne({
-                username: user,
+                username: username,
             });
             return findUser.username;
         }
@@ -79,10 +79,10 @@ var nerdquiz;
             return null;
         }
     }
-    async function getQuiz(user) {
+    async function getQuiz(username) {
         try {
             let findQuiz = await quiz.findOne({
-                user: user,
+                username: username,
                 ready: "false",
             });
             return findQuiz._id;
@@ -91,10 +91,10 @@ var nerdquiz;
             return null;
         }
     }
-    async function getQuizQA(user) {
+    async function getQuizQA(username) {
         try {
             let findQuiz = await quiz.findOne({
-                user: user,
+                username: username,
                 ready: "false",
             });
             return [findQuiz.question, findQuiz.answer];

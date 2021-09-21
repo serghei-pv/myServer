@@ -9,7 +9,6 @@ html {
   height: 100%;
   font-size: 20px;
   font-family: Montserrat;
-  background-attachment: fixed;
 }
 
 body {
@@ -354,9 +353,9 @@ textarea:focus {
 #questionDisplay,
 #answerDisplay {
   width: 100%;
-  word-wrap: break-word; /* IE 5.5-7 */
-  white-space: -moz-pre-wrap; /* Firefox 1.0-2.0 */
-  white-space: pre-wrap; /* current browsers */
+  word-wrap: break-word;
+  white-space: -moz-pre-wrap;
+  white-space: pre-wrap;
 }
 
 #quizFooter {
@@ -381,7 +380,6 @@ textarea:focus {
   order: 3;
   font-size: 20px;
   margin: 0 0 0 5%;
-  visibility: hidden;
 }
 
 .answerForm {
@@ -428,6 +426,7 @@ textarea:focus {
 
 .answerContainer {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
 }
 
@@ -437,8 +436,7 @@ textarea:focus {
 .participantAddPoint,
 .participantUnlock {
   cursor: pointer;
-  margin: 0 2% 0 0;
-  width: 5%;
+  width: 50px;
   border: 2px solid white;
   background-color: transparent;
 
@@ -446,6 +444,11 @@ textarea:focus {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.participantSubPoint,
+.participantAddHalfPoint {
+  margin: 0 5px 0 0;
 }
 
 .participantSubPoint,
@@ -474,16 +477,20 @@ textarea:focus {
 
 .participantAnswerName {
   order: 1;
-  margin: 0 2% 0 0;
-}
-.participantUnlock {
-  order: 2;
+  width: 100%;
+  padding: 0 0 20px 0;
+  font-size: 50px;
+  text-align: center;
 }
 .participantSubPoint {
-  order: 3;
+  order: 2;
 }
 .participantSubHalfPoint {
+  order: 3;
+}
+.participantUnlock {
   order: 4;
+  margin: 0 25px 0 25px;
 }
 .participantAddHalfPoint {
   order: 5;
@@ -496,10 +503,11 @@ textarea:focus {
   order: 7;
   width: 100%;
   padding: 20px 0 0 0;
-  font-size: 20px;
-  word-wrap: break-word; /* IE 5.5-7 */
-  white-space: -moz-pre-wrap; /* Firefox 1.0-2.0 */
-  white-space: pre-wrap; /* current browsers */
+  font-size: 25px;
+  text-align: center;
+  word-wrap: break-word;
+  white-space: -moz-pre-wrap;
+  white-space: pre-wrap;
 }
 
 .participantContainer {
@@ -512,9 +520,36 @@ textarea:focus {
   float: right;
 }
 
-.alertMessage {
+#roomNumber {
   float: right;
-  color: rgb(255, 101, 101);
+}
+
+.blue {
+  color: rgb(0, 130, 252);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: auto;
+}
+
+.modal-content {
+  background-color: #101011;
+  text-align: center;
+  margin: auto;
+  width: 500px;
+  height: 50px;
+  padding: 10px;
+}
+
+#modaltext {
+  color: #ff1d19;
+  font-size: 40px;
 
   animation: fadeOut forwards 3s;
   -webkit-animation: fadeOut forwards 3s;
@@ -545,12 +580,4 @@ textarea:focus {
   100% {
     opacity: 0;
   }
-}
-
-#roomNumber {
-  float: right;
-}
-
-.blue {
-  color: rgb(0, 130, 252);
 }

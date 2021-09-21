@@ -8,13 +8,15 @@ var nerdquiz;
     let questionDisplay = document.getElementById("questionDisplay");
     let answerDisplay = document.getElementById("answerDisplay");
     let questionNumberDisplay = document.getElementById("questionNumberDisplay");
+    let modal = document.getElementById("modal");
+    let modaltext = document.getElementById("modaltext");
     let createQuestionsCounter = 1;
     let questionCounter = 0;
     let filledTextAreaArray = [];
-    let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-    let host = "https://wb-s.herokuapp.com/";
-    // let ws = new WebSocket("ws://localhost:8100/");
-    // let host: string = "http://localhost:8100/";
+    // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+    // let host: string = "https://wb-s.herokuapp.com/";
+    let ws = new WebSocket("ws://localhost:8100/");
+    let host = "http://localhost:8100/";
     let loginVariable = "login";
     let createQuizVariable = "create";
     let saveQuizVariable = "save";
@@ -28,7 +30,7 @@ var nerdquiz;
             else {
                 waitForWebsocket();
             }
-        }, 5); // wait 5 milisecond for the connection...
+        }, 5);
     }
     function pageCheck() {
         switch (currentPage) {
@@ -58,14 +60,14 @@ var nerdquiz;
                             quizNumber.innerHTML = JSON.stringify(i + 1);
                             quizID.innerHTML = data[i]._id;
                             quizQuestionAmount.innerHTML = data[i].question.length;
-                            quizSubmitter.innerHTML = data[i].user;
+                            quizSubmitter.innerHTML = data[i].username;
                             quizList.insertBefore(quizRow, quizList.childNodes[2]);
                             quizRow.appendChild(quizNumber);
                             quizRow.appendChild(quizID);
                             quizRow.appendChild(quizQuestionAmount);
                             quizRow.appendChild(quizSubmitter);
                             function loadQuiz() {
-                                if (sessionStorage.getItem("user") == data[i].user) {
+                                if (sessionStorage.getItem("username") == data[i].username) {
                                     sessionStorage.setItem("quiz", JSON.stringify(data[i]));
                                     window.location.href = "../pages/host.html";
                                 }
@@ -98,14 +100,13 @@ var nerdquiz;
                 participateQuiz();
                 ws.send(JSON.stringify({
                     type: "participant",
-                    username: sessionStorage.getItem("user"),
+                    username: sessionStorage.getItem("username"),
                     roomnumber: sessionStorage.getItem("roomNumber"),
                 }));
                 break;
         }
     }
     function hostQuiz() {
-        document.getElementById("nextQuestion").style.visibility = "visible";
         document.getElementById("nextQuestion").addEventListener("click", processContinue);
         document.getElementById("quizFooter").appendChild(questionNumberDisplay);
         quizTop.appendChild(questionDisplay);
@@ -253,7 +254,7 @@ var nerdquiz;
         submitButton.addEventListener("click", processAnswer);
         ws.addEventListener("message", ({ data }) => {
             for (let i = 0; i < JSON.parse(data).length; i++) {
-                if (JSON.parse(data)[i].username == sessionStorage.getItem("user")) {
+                if (JSON.parse(data)[i].username == sessionStorage.getItem("username")) {
                     if (points != JSON.parse(data)[i].points) {
                         points = JSON.parse(data)[i].points;
                         pointsDisplay.innerHTML = points + " / " + sessionStorage.getItem("quizLength");
@@ -349,14 +350,41 @@ var nerdquiz;
         }
         if (filledTextAreaArray.length == filledTextArea) {
             processRequest(host, createQuizVariable);
+            modal.style.display = "block";
+            modaltext.style.color = "#00FF50";
+            modaltext.innerHTML = "Quiz created!";
+            setTimeout(function () {
+                console.log("huh");
+                window.location.href = "../pages/rooms.html";
+            }, 1000);
             filledTextAreaArray.length = 0;
         }
         else {
-            console.log("Fill out everything!");
+            modal.style.display = "block";
+            modaltext.innerHTML = "Fill out everything!";
+            setTimeout(function () {
+                modal.style.display = "none";
+            }, 3000);
         }
     }
     function processSaveQuiz() {
-        processRequest(host, saveQuizVariable);
+        modal.style.display = "block";
+        modaltext.style.color = "#00FF50";
+        modaltext.innerHTML = "Saved successfully!";
+        setTimeout(function () {
+            modaltext.style.color = "#FF1D19";
+            modal.style.display = "none";
+        }, 3000);
+        try {
+            processRequest(host, saveQuizVariable);
+        }
+        catch (e) {
+            modal.style.display = "block";
+            modaltext.innerHTML = "An error accured";
+            setTimeout(function () {
+                modal.style.display = "none";
+            }, 3000);
+        }
     }
     function processLoadQuiz() {
         processRequest(host, loadQuizVariable);
@@ -367,7 +395,7 @@ var nerdquiz;
         if (document.querySelector("textarea").value != "") {
             ws.send(JSON.stringify({
                 type: "answer",
-                username: sessionStorage.getItem("user"),
+                username: sessionStorage.getItem("username"),
                 answer: query.get("answer"),
             }));
         }
@@ -402,7 +430,7 @@ var nerdquiz;
                 textData = await response.text();
                 if (textData == query.get("username")) {
                     sessionStorage.setItem("login", "true");
-                    sessionStorage.setItem("user", query.get("username"));
+                    sessionStorage.setItem("username", query.get("username"));
                     window.location.href = "./index.html";
                 }
                 break;
@@ -415,24 +443,12 @@ var nerdquiz;
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        username: sessionStorage.getItem("user"),
+                        username: sessionStorage.getItem("username"),
                         ready: "false",
                         question: query.getAll("question"),
                         answer: query.getAll("answer"),
                     }),
                 };
-                try {
-                    response = await fetch(_url, data);
-                    saveMessage.innerHTML = "Saved succefully";
-                    menuCenter.appendChild(saveMessage);
-                }
-                catch (e) {
-                    saveMessage.innerHTML = "Quiz is too long! Save failed";
-                    menuCenter.appendChild(saveMessage);
-                }
-                if (menuCenter.childNodes.length > 1) {
-                    menuCenter.removeChild(menuCenter.firstChild);
-                }
                 break;
             case createQuizVariable:
                 _url += createQuizVariable;
@@ -440,14 +456,13 @@ var nerdquiz;
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        username: sessionStorage.getItem("user"),
+                        username: sessionStorage.getItem("username"),
                         ready: "true",
                         question: query.getAll("question"),
                         answer: query.getAll("answer"),
                     }),
                 };
                 await fetch(_url, data);
-                window.location.href = "../pages/create.html";
                 break;
             case loadQuizVariable:
                 _url += loadQuizVariable;
@@ -455,7 +470,7 @@ var nerdquiz;
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        username: sessionStorage.getItem("user"),
+                        username: sessionStorage.getItem("username"),
                     }),
                 };
                 response = await fetch(_url, data);
