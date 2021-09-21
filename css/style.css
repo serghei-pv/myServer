@@ -336,7 +336,7 @@ textarea:focus {
 #quizBottom {
   width: 90%;
   text-align: left;
-  margin: 5%;
+  margin: 0 5% 5% 5%;
 }
 
 #questionDisplay {
@@ -426,7 +426,6 @@ textarea:focus {
 
 .answerContainer {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
 }
 
@@ -438,17 +437,13 @@ textarea:focus {
   cursor: pointer;
   width: 50px;
   border: 2px solid white;
+  margin: 0 10px 0 10px;
   background-color: transparent;
 
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
-}
-
-.participantSubPoint,
-.participantAddHalfPoint {
-  margin: 0 5px 0 0;
 }
 
 .participantSubPoint,
@@ -480,7 +475,6 @@ textarea:focus {
   width: 100%;
   padding: 0 0 20px 0;
   font-size: 50px;
-  text-align: center;
 }
 .participantSubPoint {
   order: 2;
@@ -490,7 +484,6 @@ textarea:focus {
 }
 .participantUnlock {
   order: 4;
-  margin: 0 25px 0 25px;
 }
 .participantAddHalfPoint {
   order: 5;
@@ -504,7 +497,6 @@ textarea:focus {
   width: 100%;
   padding: 20px 0 0 0;
   font-size: 25px;
-  text-align: center;
   word-wrap: break-word;
   white-space: -moz-pre-wrap;
   white-space: pre-wrap;

@@ -33,12 +33,13 @@ var nerdquiz;
         }, 5);
     }
     function pageCheck() {
+        let loginButton = document.getElementById("loginButton");
         switch (currentPage) {
             case "":
-                document.getElementById("loginButton").addEventListener("click", processLogin);
+                loginButton.addEventListener("click", processLogin);
                 break;
             case "index.html":
-                document.getElementById("loginButton").addEventListener("click", processLogin);
+                loginButton.addEventListener("click", processLogin);
                 break;
             case "rooms.html":
                 ws.send(JSON.stringify({
@@ -89,10 +90,14 @@ var nerdquiz;
                 break;
             case "create.html":
                 processLoadQuiz();
-                document.getElementById("addQuestionButton").addEventListener("click", addQuestion);
-                document.getElementById("removeQuestionButton").addEventListener("click", removeQuestion);
-                document.getElementById("createQuiz").addEventListener("click", processCreateQuiz);
-                document.getElementById("saveQuiz").addEventListener("click", processSaveQuiz);
+                let addQuestionButton = document.getElementById("addQuestionButton");
+                let removeQuestionButton = document.getElementById("removeQuestionButton");
+                let createQuiz = document.getElementById("createQuiz");
+                let saveQuiz = document.getElementById("saveQuiz");
+                addQuestionButton.addEventListener("click", addQuestion);
+                removeQuestionButton.addEventListener("click", removeQuestion);
+                createQuiz.addEventListener("click", processCreateQuiz);
+                saveQuiz.addEventListener("click", processSaveQuiz);
                 break;
             case "host.html":
                 hostQuiz();
@@ -109,16 +114,20 @@ var nerdquiz;
                 break;
         }
     }
+    let nextQuestionButton = document.getElementById("nextQuestion");
+    let previousQuestionButton = document.getElementById("previousQuestion");
     function hostQuiz() {
-        document.getElementById("nextQuestion").addEventListener("click", processContinue);
-        document.getElementById("quizFooter").appendChild(questionNumberDisplay);
+        let nextQuestion = document.getElementById("nextQuestion");
+        let quizFooter = document.getElementById("quizFooter");
+        nextQuestion.addEventListener("click", processContinue);
+        quizFooter.appendChild(questionNumberDisplay);
         quizTop.appendChild(questionDisplay);
         quizTop.appendChild(answerDisplay);
         displayQuestion();
     }
     function manageQuiz() {
-        document.getElementById("previousQuestion").addEventListener("click", previousQuestion);
-        document.getElementById("nextQuestion").addEventListener("click", nextQuestion);
+        previousQuestionButton.addEventListener("click", previousQuestion);
+        nextQuestionButton.addEventListener("click", nextQuestion);
         ws.addEventListener("message", ({ data }) => {
             data = JSON.parse(data);
             for (let i = 0; i < data.length; i++) {
@@ -183,7 +192,8 @@ var nerdquiz;
                         participantUnlock.addEventListener("click", unlock);
                         function showParticipantAnswer() {
                             if (quizBottom.childNodes.length != 0) {
-                                quizBottom.removeChild(quizBottom.lastChild);
+                                let lastChildQuizBottom = quizBottom.lastChild;
+                                quizBottom.removeChild(lastChildQuizBottom);
                             }
                             quizBottom.appendChild(answerContainer);
                             participantAnswerName.innerHTML = data[i].username;
@@ -206,23 +216,25 @@ var nerdquiz;
                     function unlock() {
                         ws.send(JSON.stringify(unlockAnswer));
                     }
-                    if (document.getElementById("name" + i).innerHTML != data[i].username ||
-                        document.getElementById("points" + i).innerHTML != data[i].points) {
-                        document.getElementById("name" + i).innerHTML = data[i].username;
-                        document.getElementById("points" + i).innerHTML = data[i].points;
+                    let iName = document.getElementById("name" + i);
+                    let iPoints = document.getElementById("points" + i);
+                    if (iName.innerHTML != data[i].username || iPoints.innerHTML != data[i].points) {
+                        iName.innerHTML = data[i].username;
+                        iPoints.innerHTML = data[i].points;
                     }
                     if (data[i].answer != "") {
-                        document.getElementById("name" + i).classList.add("blue");
+                        iName.classList.add("blue");
                     }
                     else {
-                        document.getElementById("name" + i).classList.remove("blue");
+                        iName.classList.remove("blue");
                     }
+                    let iAnswerName = document.getElementById("answerName" + i);
+                    let iAnswer = document.getElementById("answer" + i);
                     if (quizBottom.childNodes.length != 0) {
-                        if (document.getElementById("answerName" + i) != null && document.getElementById("answer" + i) != null) {
-                            if (document.getElementById("answerName" + i).innerHTML != data[i].username ||
-                                document.getElementById("answer" + i).innerHTML != data[i].answer) {
-                                document.getElementById("answerName" + i).innerHTML = data[i].username;
-                                document.getElementById("answer" + i).innerHTML = data[i].answer;
+                        if (iAnswerName != null && iAnswer != null) {
+                            if (iAnswerName.innerHTML != data[i].username || iAnswer.innerHTML != data[i].answer) {
+                                iAnswerName.innerHTML = data[i].username;
+                                iAnswer.innerHTML = data[i].answer;
                             }
                         }
                     }
@@ -239,7 +251,6 @@ var nerdquiz;
         let textArea = document.createElement("TEXTAREA");
         let submitButton = document.createElement("BUTTON");
         let pointsDisplay = document.createElement("P");
-        let answerField = document.querySelector("textarea");
         let points;
         quizTop.appendChild(answerForm);
         answerForm.appendChild(textArea);
@@ -255,7 +266,14 @@ var nerdquiz;
         pointsDisplay.id = "answerPoints";
         textArea.addEventListener("input", autoExpand);
         submitButton.addEventListener("click", processAnswer);
+        function autoExpand() {
+            let heightLimit = 60;
+            textArea.style.height = "";
+            textArea.style.height = Math.min(textArea.scrollHeight, heightLimit) + "px";
+        }
         ws.addEventListener("message", ({ data }) => {
+            let answerButton = document.getElementById("answerButton");
+            let answerField = document.querySelector("TEXTAREA");
             for (let i = 0; i < JSON.parse(data).length; i++) {
                 if (JSON.parse(data)[i].username == sessionStorage.getItem("username")) {
                     if (points != JSON.parse(data)[i].points) {
@@ -263,18 +281,14 @@ var nerdquiz;
                         pointsDisplay.innerHTML = points + " / " + sessionStorage.getItem("quizLength");
                     }
                     if (JSON.parse(data)[i].lock == "true") {
-                        document.getElementById("answerButton").classList.add("lock");
-                        answerField = document.querySelector("textarea");
+                        answerButton.classList.add("lock");
                         answerField.classList.add("lock");
                         answerField.value = JSON.parse(data)[i].answer;
                     }
                     if (JSON.parse(data)[i].lock == "false") {
-                        document.getElementById("answerButton").classList.remove("lock");
-                        if (answerField == document.querySelector("textarea")) {
-                            answerField.classList.remove("lock");
-                            answerField.value = "";
-                            answerField = undefined;
-                        }
+                        answerButton.classList.remove("lock");
+                        answerField.classList.remove("lock");
+                        answerField.value = "";
                     }
                 }
             }
@@ -307,39 +321,36 @@ var nerdquiz;
         createQuestionsCounter++;
     }
     function removeQuestion() {
+        let lastChildcreateQuizForm = createQuizForm.lastChild;
         if (createQuestionsCounter > 2) {
             for (let i = 0; i < 1; i++) {
-                createQuizForm.removeChild(createQuizForm.lastChild);
+                createQuizForm.removeChild(lastChildcreateQuizForm);
                 filledTextAreaArray.length -= 2;
             }
             createQuestionsCounter--;
         }
     }
+    let storageQuiz = sessionStorage.getItem("quiz");
     function displayQuestion() {
         questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
-        questionDisplay.innerHTML = JSON.parse(sessionStorage.getItem("quiz")).question[questionCounter];
-        answerDisplay.innerHTML = "Answer: " + JSON.parse(sessionStorage.getItem("quiz")).answer[questionCounter];
+        questionDisplay.innerHTML = JSON.parse(storageQuiz).question[questionCounter];
+        answerDisplay.innerHTML = "Answer: " + JSON.parse(storageQuiz).answer[questionCounter];
     }
     function previousQuestion() {
         questionCounter--;
         if (questionCounter == 0) {
-            document.getElementById("previousQuestion").style.visibility = "hidden";
+            previousQuestionButton.style.visibility = "hidden";
         }
-        document.getElementById("nextQuestion").style.visibility = "visible";
+        nextQuestionButton.style.visibility = "visible";
         displayQuestion();
     }
     function nextQuestion() {
         questionCounter++;
-        if (JSON.parse(sessionStorage.getItem("quiz")).question[questionCounter + 1] == undefined) {
-            document.getElementById("nextQuestion").style.visibility = "hidden";
+        if (JSON.parse(storageQuiz).question[questionCounter + 1] == undefined) {
+            nextQuestionButton.style.visibility = "hidden";
         }
-        document.getElementById("previousQuestion").style.visibility = "visible";
+        previousQuestionButton.style.visibility = "visible";
         displayQuestion();
-    }
-    function autoExpand() {
-        let heightLimit = 60;
-        document.querySelector("textarea").style.height = "";
-        document.querySelector("textarea").style.height = Math.min(document.querySelector("textarea").scrollHeight, heightLimit) + "px";
     }
     function processLogin() {
         processRequest(host, loginVariable);
@@ -393,9 +404,10 @@ var nerdquiz;
         processRequest(host, loadQuizVariable);
     }
     function processAnswer() {
+        let answer = document.querySelector("textarea");
         let formData = new FormData(document.forms[0]);
         let query = new URLSearchParams(formData);
-        if (document.querySelector("textarea").value != "") {
+        if (answer.value != "") {
             ws.send(JSON.stringify({
                 type: "answer",
                 username: sessionStorage.getItem("username"),
@@ -416,6 +428,7 @@ var nerdquiz;
         let formData = new FormData(document.forms[0]);
         let query = new URLSearchParams(formData);
         let response;
+        let queryUsername = query.get("username");
         let textData;
         let data;
         switch (_pathname) {
@@ -433,7 +446,7 @@ var nerdquiz;
                 textData = await response.text();
                 if (textData == query.get("username")) {
                     sessionStorage.setItem("login", "true");
-                    sessionStorage.setItem("username", query.get("username"));
+                    sessionStorage.setItem("username", queryUsername);
                     window.location.href = "./pages/home.html";
                 }
                 break;

@@ -25,16 +25,15 @@ var nerdquiz;
     server.listen(port, () => console.log("A wild connection appeared!"));
     let wss = new Websocket.Server({ server });
     app.post("/login", (req, res) => {
-        console.log("hey");
         getUser(req.body.username).then(function (data) {
-            if (data != null) {
+            if (data != "noGet") {
                 res.send(req.body.username);
             }
         });
     });
     app.post("/save", (req, res) => {
         getQuiz(req.body.username).then(function (data) {
-            if (data != null) {
+            if (data != "noGet") {
                 quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer } });
                 res.send("saved succesfully");
             }
@@ -45,7 +44,7 @@ var nerdquiz;
     });
     app.post("/create", (req, res) => {
         getQuiz(req.body.username).then(function (data) {
-            if (data != null) {
+            if (data != "noGet") {
                 quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
                 res.send("Quiz created succesfully");
             }
@@ -56,7 +55,7 @@ var nerdquiz;
     });
     app.post("/load", (req, res) => {
         getQuizQA(req.body.username).then(function (data) {
-            if (data != null) {
+            if (data != []) {
                 res.send(JSON.stringify(data));
             }
             else {
@@ -77,7 +76,7 @@ var nerdquiz;
             return findUser.username;
         }
         catch (e) {
-            return null;
+            return "noGet";
         }
     }
     async function getQuiz(username) {
@@ -89,7 +88,7 @@ var nerdquiz;
             return findQuiz._id;
         }
         catch (e) {
-            return null;
+            return "noGet";
         }
     }
     async function getQuizQA(username) {
@@ -101,7 +100,8 @@ var nerdquiz;
             return [findQuiz.question, findQuiz.answer];
         }
         catch (e) {
-            return null;
+            let noGet = [];
+            return noGet;
         }
     }
     async function getQuizAll() {
@@ -113,7 +113,8 @@ var nerdquiz;
             return allQuizzes;
         }
         catch (e) {
-            return null;
+            let noGet = [];
+            return noGet;
         }
     }
     wss.on("connection", async (socket) => {
