@@ -79,10 +79,10 @@ namespace nerdquiz {
               function loadQuiz(): void {
                 if (sessionStorage.getItem("username") == data[i].username) {
                   sessionStorage.setItem("quiz", JSON.stringify(data[i]));
-                  window.location.href = "../pages/host.html";
+                  window.location.href = "./host.html";
                 } else {
                   sessionStorage.setItem("quizLength", data[i].question.length);
-                  window.location.href = "../pages/participant.html";
+                  window.location.href = "./participant.html";
 
                   if (sessionStorage.getItem("quiz") != null) {
                     sessionStorage.removeItem("quiz");
@@ -411,7 +411,7 @@ namespace nerdquiz {
       modaltext.innerHTML = "Quiz created!";
       setTimeout(function () {
         console.log("huh");
-        window.location.href = "../pages/rooms.html";
+        window.location.href = "./rooms.html";
       }, 1000);
 
       filledTextAreaArray.length = 0;
@@ -497,12 +497,11 @@ namespace nerdquiz {
         if (textData == query.get("username")) {
           sessionStorage.setItem("login", "true");
           sessionStorage.setItem("username", query.get("username"));
-          window.location.href = "./index.html";
+          window.location.href = "./pages/home.html";
         }
         break;
 
       case saveQuizVariable:
-        let menuCenter: HTMLElement = <HTMLElement>document.getElementById("menuCenter");
         let saveMessage: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
         saveMessage.className = "alertMessage";
 

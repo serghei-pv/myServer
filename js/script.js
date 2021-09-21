@@ -13,10 +13,10 @@ var nerdquiz;
     let createQuestionsCounter = 1;
     let questionCounter = 0;
     let filledTextAreaArray = [];
-    // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-    // let host: string = "https://wb-s.herokuapp.com/";
-    let ws = new WebSocket("ws://localhost:8100/");
-    let host = "http://localhost:8100/";
+    let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+    let host = "https://wb-s.herokuapp.com/";
+    // let ws = new WebSocket("ws://localhost:8100/");
+    // let host: string = "http://localhost:8100/";
     let loginVariable = "login";
     let createQuizVariable = "create";
     let saveQuizVariable = "save";
@@ -69,11 +69,11 @@ var nerdquiz;
                             function loadQuiz() {
                                 if (sessionStorage.getItem("username") == data[i].username) {
                                     sessionStorage.setItem("quiz", JSON.stringify(data[i]));
-                                    window.location.href = "../pages/host.html";
+                                    window.location.href = "./host.html";
                                 }
                                 else {
                                     sessionStorage.setItem("quizLength", data[i].question.length);
-                                    window.location.href = "../pages/participant.html";
+                                    window.location.href = "./participant.html";
                                     if (sessionStorage.getItem("quiz") != null) {
                                         sessionStorage.removeItem("quiz");
                                     }
@@ -355,7 +355,7 @@ var nerdquiz;
             modaltext.innerHTML = "Quiz created!";
             setTimeout(function () {
                 console.log("huh");
-                window.location.href = "../pages/rooms.html";
+                window.location.href = "./rooms.html";
             }, 1000);
             filledTextAreaArray.length = 0;
         }
@@ -431,11 +431,10 @@ var nerdquiz;
                 if (textData == query.get("username")) {
                     sessionStorage.setItem("login", "true");
                     sessionStorage.setItem("username", query.get("username"));
-                    window.location.href = "./index.html";
+                    window.location.href = "./pages/home.html";
                 }
                 break;
             case saveQuizVariable:
-                let menuCenter = document.getElementById("menuCenter");
                 let saveMessage = document.createElement("DIV");
                 saveMessage.className = "alertMessage";
                 _url += saveQuizVariable;
