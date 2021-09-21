@@ -23,7 +23,7 @@
   "name": "nerdquiz",
   "description": "questions game",
   "version": "1.0",
-  "main": "js/server.js",
+  "main": "/js/server.js",
   "scripts": {
     "start": "node js/server.js",
     "dev": "nodemon js/server.js"
