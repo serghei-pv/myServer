@@ -1,26 +1,35 @@
 "use strict";
 var nerdquiz;
 (function (nerdquiz) {
-    let currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
+    //index.html
+    let loginButton = document.getElementById("loginButton");
+    let loginVariable = "login";
+    //create.html
     let createQuizForm = document.getElementById("createQuizForm");
-    let quizTop = document.getElementById("quizTop");
-    let quizBottom = document.getElementById("quizBottom");
-    let questionDisplay = document.getElementById("questionDisplay");
-    let answerDisplay = document.getElementById("answerDisplay");
-    let questionNumberDisplay = document.getElementById("questionNumberDisplay");
     let modal = document.getElementById("modal");
     let modaltext = document.getElementById("modaltext");
     let createQuestionsCounter = 1;
-    let questionCounter = 0;
     let filledTextAreaArray = [];
+    let createQuizVariable = "create";
+    let saveQuizVariable = "save";
+    let loadQuizVariable = "load";
+    //host.html
+    let questionDisplay = document.getElementById("questionDisplay");
+    let answerDisplay = document.getElementById("answerDisplay");
+    let questionNumberDisplay = document.getElementById("questionNumberDisplay");
+    let nextQuestionButton = document.getElementById("nextQuestion");
+    let previousQuestionButton = document.getElementById("previousQuestion");
+    //host.html & participant.html
+    let quizTop = document.getElementById("quizTop");
+    let quizBottom = document.getElementById("quizBottom");
+    let questionCounter = 0;
+    //global
+    let currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
+    let storageQuiz = sessionStorage.getItem("quiz");
     let ws = new WebSocket("wss://wb-s.herokuapp.com/");
     let host = "https://wb-s.herokuapp.com/";
     // let ws = new WebSocket("ws://localhost:8100/");
     // let host: string = "http://localhost:8100/";
-    let loginVariable = "login";
-    let createQuizVariable = "create";
-    let saveQuizVariable = "save";
-    let loadQuizVariable = "load";
     window.addEventListener("load", waitForWebsocket);
     function waitForWebsocket() {
         setTimeout(function () {
@@ -33,7 +42,6 @@ var nerdquiz;
         }, 5);
     }
     function pageCheck() {
-        let loginButton = document.getElementById("loginButton");
         switch (currentPage) {
             case "":
                 loginButton.addEventListener("click", processLogin);
@@ -114,8 +122,6 @@ var nerdquiz;
                 break;
         }
     }
-    let nextQuestionButton = document.getElementById("nextQuestion");
-    let previousQuestionButton = document.getElementById("previousQuestion");
     function hostQuiz() {
         let nextQuestion = document.getElementById("nextQuestion");
         let quizFooter = document.getElementById("quizFooter");
@@ -330,7 +336,6 @@ var nerdquiz;
             createQuestionsCounter--;
         }
     }
-    let storageQuiz = sessionStorage.getItem("quiz");
     function displayQuestion() {
         questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
         questionDisplay.innerHTML = JSON.parse(storageQuiz).question[questionCounter];
@@ -464,6 +469,7 @@ var nerdquiz;
                         answer: query.getAll("answer"),
                     }),
                 };
+                await fetch(_url, data);
                 break;
             case createQuizVariable:
                 _url += createQuizVariable;
@@ -490,7 +496,7 @@ var nerdquiz;
                 };
                 response = await fetch(_url, data);
                 let quiz = await response.json();
-                if (quiz != "0") {
+                if (quiz.length > 0) {
                     for (let i = 1; i <= quiz[1].length; i++) {
                         addQuestion();
                         let localQuestionArea = document.getElementById("questionArea" + i);

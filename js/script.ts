@@ -1,30 +1,39 @@
 namespace nerdquiz {
-  let currentPage: string = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
+  //index.html
+  let loginButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("loginButton");
+  let loginVariable: string = "login";
+
+  //create.html
   let createQuizForm: HTMLFormElement = <HTMLFormElement>document.getElementById("createQuizForm");
-  let quizTop: HTMLDivElement = <HTMLDivElement>document.getElementById("quizTop");
-  let quizBottom: HTMLDivElement = <HTMLDivElement>document.getElementById("quizBottom");
+  let modal: HTMLElement = <HTMLElement>document.getElementById("modal");
+  let modaltext: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("modaltext");
+  let createQuestionsCounter: number = 1;
+  let filledTextAreaArray: HTMLTextAreaElement[] = [];
+  let createQuizVariable: string = "create";
+  let saveQuizVariable: string = "save";
+  let loadQuizVariable: string = "load";
+
+  //host.html
   let questionDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("questionDisplay");
   let answerDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("answerDisplay");
   let questionNumberDisplay: HTMLDivElement = <HTMLDivElement>document.getElementById("questionNumberDisplay");
-  let modal: HTMLElement = <HTMLElement>document.getElementById("modal");
-  let modaltext: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("modaltext");
+  let nextQuestionButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("nextQuestion");
+  let previousQuestionButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("previousQuestion");
 
-  let createQuestionsCounter: number = 1;
+  //host.html & participant.html
+  let quizTop: HTMLDivElement = <HTMLDivElement>document.getElementById("quizTop");
+  let quizBottom: HTMLDivElement = <HTMLDivElement>document.getElementById("quizBottom");
   let questionCounter: number = 0;
-  let filledTextAreaArray: HTMLTextAreaElement[] = [];
 
+  //global
+  let currentPage: string = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
+  let storageQuiz: string = <string>sessionStorage.getItem("quiz");
   let ws = new WebSocket("wss://wb-s.herokuapp.com/");
   let host: string = "https://wb-s.herokuapp.com/";
   // let ws = new WebSocket("ws://localhost:8100/");
   // let host: string = "http://localhost:8100/";
 
-  let loginVariable: string = "login";
-  let createQuizVariable: string = "create";
-  let saveQuizVariable: string = "save";
-  let loadQuizVariable: string = "load";
-
   window.addEventListener("load", waitForWebsocket);
-
   function waitForWebsocket() {
     setTimeout(function () {
       if (ws.readyState === 1) {
@@ -36,8 +45,6 @@ namespace nerdquiz {
   }
 
   function pageCheck(): void {
-    let loginButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("loginButton");
-
     switch (currentPage) {
       case "":
         loginButton.addEventListener("click", processLogin);
@@ -133,9 +140,6 @@ namespace nerdquiz {
         break;
     }
   }
-
-  let nextQuestionButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("nextQuestion");
-  let previousQuestionButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("previousQuestion");
 
   function hostQuiz(): void {
     let nextQuestion: HTMLButtonElement = <HTMLButtonElement>document.getElementById("nextQuestion");
@@ -366,7 +370,6 @@ namespace nerdquiz {
     questionArea.focus();
     createQuestionsCounter++;
   }
-
   function removeQuestion(): void {
     let lastChildcreateQuizForm: ChildNode = <ChildNode>createQuizForm.lastChild;
 
@@ -378,8 +381,6 @@ namespace nerdquiz {
       createQuestionsCounter--;
     }
   }
-
-  let storageQuiz: string = <string>sessionStorage.getItem("quiz");
 
   function displayQuestion(): void {
     questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
@@ -537,6 +538,7 @@ namespace nerdquiz {
             answer: query.getAll("answer"),
           }),
         };
+        await fetch(_url, data);
         break;
 
       case createQuizVariable:
@@ -569,7 +571,7 @@ namespace nerdquiz {
         response = await fetch(_url, data);
         let quiz = await response.json();
 
-        if (quiz != "0") {
+        if (quiz.length > 0) {
           for (let i: number = 1; i <= quiz[1].length; i++) {
             addQuestion();
 

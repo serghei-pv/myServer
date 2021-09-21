@@ -32,8 +32,11 @@ var nerdquiz;
         });
     });
     app.post("/save", (req, res) => {
+        console.log("0");
         getQuiz(req.body.username).then(function (data) {
+            console.log("1");
             if (data != "noGet") {
+                console.log("2");
                 quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer } });
                 res.send("saved succesfully");
             }
