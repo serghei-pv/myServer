@@ -34,6 +34,9 @@ var nerdquiz;
     }
     function pageCheck() {
         switch (currentPage) {
+            case "":
+                document.getElementById("loginButton").addEventListener("click", processLogin);
+                break;
             case "index.html":
                 document.getElementById("loginButton").addEventListener("click", processLogin);
                 break;

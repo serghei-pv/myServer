@@ -24,6 +24,7 @@ export namespace nerdquiz {
   let wss = new Websocket.Server({ server });
 
   app.post("/login", (req, res) => {
+    console.log("hey");
     getUser(req.body.username).then(function (data) {
       if (data != null) {
         res.send(req.body.username);
