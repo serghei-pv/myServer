@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Participating</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="../media/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../media/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../media/favicon-16x16.png" />
+    <link rel="manifest" href="../media/site.webmanifest" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <script src="../js/script.js" defer></script>
+  </head>
+
+  <body>
+    <header class="menuContainer">
+      <nav class="menu">
+        <a href="./create.html" title="Create a Quiz">Create</a>
+        <a href="./rooms.html" title="Join a Quiz">Join</a>
+        <a href="./home.html" title="Home">Home</a>
+      </nav>
+    </header>
+
+    <main class="mainContainer">
+      <section class="mainCenterParticipant">
+        <form id="answerForm" class="answerForm">
+          <textarea name="answer" id="textArea" class="participantsTextarea"></textarea>
+          <button id="answerButton" class="btn" type="button">Answer</button>
+          <p id="answerPoints"></p>
+        </form>
+      </section>
+      <section id="modalLogin" class="modalLogin">
+        <form class="modalLoginContent">
+          <input type="text" placeholder="Username" name="username" />
+          <button class="btn" type="button" id="loginButton">Continue</button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

@@ -25,43 +25,28 @@ footer {
   position: fixed;
 }
 
-a {
-  text-decoration: none;
-}
-
-a:visited,
-a {
-  color: white;
-}
-
 li {
   list-style: none;
 }
 
+a:visited,
+a {
+  text-decoration: none;
+  color: white;
+}
+
 .menuContainer {
+  z-index: 1;
   background-color: #171719;
   display: flex;
-  justify-content: center;
+  justify-content: right;
   position: fixed;
   width: 100%;
   padding: 1% 0 1% 0;
 }
 
-.menu li {
-  margin-left: 25px;
-  margin-right: 25px;
-}
-
-.emptyMenuCenter {
-  order: 2;
-  width: 64%;
-  margin-left: 2%;
-  margin-right: 2%;
-}
-
-.emptyMenuRight {
-  order: 3;
-  width: 17%;
+.menu a {
+  margin: 0 50px 0 0;
 }
 
 .mainContainer {
@@ -69,12 +54,11 @@ li {
   flex-wrap: wrap;
 }
 
-.mainCenterHost {
+#mainHost {
   order: 2;
   height: 100%;
-  width: 58%;
-  padding: 200px 0 0 0;
-  margin: 0 21% 0 1%;
+  width: 100%;
+  padding: 75px 0 0 0;
 }
 
 .mainCenterParticipant {
@@ -84,21 +68,6 @@ li {
   margin: auto;
 }
 
-.leftMain {
-  order: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100%;
-  padding: 200px 0 0 0;
-  width: 19%;
-  margin: 0 0 0 1%;
-}
-
-#leftMain {
-  text-align: left;
-}
-
 #quizList {
   order: 2;
   width: 100%;
@@ -106,25 +75,6 @@ li {
   margin: 0 20% 0 20%;
   text-align: left;
   table-layout: fixed;
-}
-
-.rightMain {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 20%;
-  order: 3;
-  height: 100%;
-  width: 17%;
-}
-
-.menu li,
-#indexMenu li {
-  display: inline-block;
-}
-
-h1 {
-  font-size: 30px;
-  padding: 0 0 3% 0;
 }
 
 #createQuizForm {
@@ -152,14 +102,10 @@ textarea:focus {
   display: flex;
 }
 
-.numberArea {
-  width: 5%;
-}
-
 .questionArea {
   height: 20px;
   width: 75%;
-  margin: 0 5% 15px 0;
+  margin: 0 5% 15px 15px;
 }
 
 .answerArea {
@@ -168,41 +114,14 @@ textarea:focus {
   margin: 0 0 15px 0;
 }
 
-.createMenu {
+#createMenu {
   display: flex;
   justify-content: center;
   padding: 10px 0 10px 0;
   background-color: #101011;
 }
 
-#addQuestionButton {
-  order: 1;
-}
-#removeQuestionButton {
-  order: 2;
-}
-#saveQuiz {
-  order: 3;
-}
-#createQuiz {
-  order: 4;
-}
-
-#createQuestionTextarea,
-#addQuestionButton,
-#removeQuestionButton,
-#saveQuiz,
-#createQuiz {
-  margin: 0 5px 0 0;
-}
-
-#previousQuestion,
-#nextQuestion,
-#addQuestionButton,
-#removeQuestionButton,
-#saveQuiz,
-#createQuiz,
-.submitButton {
+.btn {
   font-family: Montserrat;
   width: 100px;
   height: 50px;
@@ -210,55 +129,7 @@ textarea:focus {
   border-radius: 5px 5px 5px 5px;
   color: white;
   cursor: pointer;
-
   background-color: #262626;
-}
-
-.lr {
-  margin: auto;
-  padding: 10% 0 0 0;
-  width: 350px;
-}
-
-.lrPassive {
-  padding: -100% 0 0 0;
-}
-
-.lrInputDiv {
-  text-align: left;
-}
-
-.lrInput {
-  font-family: Montserrat;
-  width: 100%;
-  height: 30px;
-  border: 2px solid black;
-  border-radius: 5px 5px 5px 5px;
-  color: white;
-  background-color: #262626;
-  font-size: 15px;
-}
-
-.lrButtonDiv {
-  padding: 10% 0 0 0;
-}
-
-.lrButton {
-  font-family: Montserrat;
-  width: 40%;
-  height: 50px;
-  margin: 5% 0 0 0;
-  border: 2px solid black;
-  border-radius: 5px 5px 5px 5px;
-  color: white;
-  cursor: pointer;
-  background-color: #262626;
-}
-
-.quizIDForm {
-  display: flex;
-  justify-content: flex-end;
-  height: 100%;
 }
 
 #quizID {
@@ -325,40 +196,48 @@ textarea:focus {
 }
 
 #quizTop {
-  position: relative;
-  height: 300px;
-  margin: 0 5% 5% 5%;
-  text-align: left;
-  width: 90%;
+  z-index: 0;
+  position: fixed;
+  top: 0;
+  height: 75px;
+  width: 100%;
+  padding: 75px 0 50px 0;
   border-bottom: 2px solid rgba(255, 255, 255, 0.199);
+  background-color: #171719;
 }
 
 #quizBottom {
-  width: 90%;
-  text-align: left;
-  margin: 0 5% 5% 5%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 150px 0 75px 0;
 }
 
 #questionDisplay {
-  font-size: 25px;
+  font-size: 18px;
+  width: 80%;
 }
 
 #answerDisplay {
-  font-size: 20px;
-  padding: 15px 0 15px 0;
+  font-size: 15px;
   position: absolute;
   bottom: 0;
+  padding: 0 0 5px 0;
+  width: 100%;
+  color: #4bad71;
 }
 
 #questionDisplay,
 #answerDisplay {
-  width: 100%;
+  margin: auto;
   word-wrap: break-word;
   white-space: -moz-pre-wrap;
   white-space: pre-wrap;
 }
 
 #quizFooter {
+  background: #171719;
   display: flex;
   justify-content: center;
 }
@@ -387,19 +266,13 @@ textarea:focus {
 }
 
 .participantsTextarea {
-  margin: 100px 0 0 0;
+  margin: 100px 0 50px 0;
   height: 20px;
-  width: 80%;
+  width: 100%;
 }
 
 .lastAnswer {
   text-align: center;
-}
-
-.submitButton {
-  margin: 50px 0 0 0;
-  width: 30%;
-  border-radius: 5px 5px 5px 5px;
 }
 
 #answerPoints {
@@ -429,6 +302,27 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
+.rowOne {
+  justify-content: space-between;
+}
+.rowTwo {
+  justify-content: space-between;
+}
+.rowThree {
+  text-align: left;
+}
+
+.rowTwo,
+.rowThree {
+  padding-top: 20px;
+}
+
+.rowOne,
+.rowTwo,
+.rowThree {
+  display: flex;
+}
+
 .participantSubPoint,
 .participantSubHalfPoint,
 .participantAddHalfPoint,
@@ -436,8 +330,9 @@ textarea:focus {
 .participantUnlock {
   cursor: pointer;
   width: 50px;
+  height: 20px;
   border: 2px solid white;
-  margin: 0 10px 0 10px;
+  border-radius: 25px 25px 25px 25px;
   background-color: transparent;
 
   -moz-user-select: none;
@@ -470,57 +365,99 @@ textarea:focus {
   background-color: rgba(255, 255, 255, 0.3);
 }
 
-.participantAnswerName {
-  order: 1;
-  width: 100%;
-  padding: 0 0 20px 0;
-  font-size: 50px;
-}
-.participantSubPoint {
-  order: 2;
-}
-.participantSubHalfPoint {
-  order: 3;
-}
-.participantUnlock {
-  order: 4;
-}
-.participantAddHalfPoint {
-  order: 5;
-}
-.participantAddPoint {
-  order: 6;
-}
-
 .participantAnswer {
-  order: 7;
   width: 100%;
-  padding: 20px 0 0 0;
-  font-size: 25px;
+  height: 95px;
+  padding: 10px 0 0 0;
+  font-size: 15px;
   word-wrap: break-word;
   white-space: -moz-pre-wrap;
   white-space: pre-wrap;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.participantAnswer::-webkit-scrollbar {
+  display: none;
 }
 
 .participantContainer {
-  margin: 0 0 7% 0;
-  border-bottom: 2px solid #929292;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  margin: 25px;
+  padding: 10px;
+  width: 350px;
+  border: 2px solid #929292;
+  border-radius: 25px;
+  background-color: #101011;
 }
 
 .participantPoints {
   float: right;
 }
 
-#roomNumber {
-  float: right;
+.blueBorder {
+  border-color: rgb(0, 130, 252);
 }
 
-.blue {
-  color: rgb(0, 130, 252);
+.modalLogin {
+  background: #171719;
+  z-index: 2;
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
 }
 
-.modal {
+.modalLoginContent {
+  display: flex;
+  flex-direction: column;
+  margin: 150px auto;
+  padding: 20px;
+  width: 350px;
+
+  animation: fadeIn forwards 3s;
+  -webkit-animation: fadeIn forwards 3s;
+  -moz-animation: fadeIn forwards 3s;
+  -o-animation: fadeIn forwards 3s;
+  -ms-animation: fadeIn forwards 3s;
+}
+
+.modalLoginContent input {
+  background: none;
+  font-size: 20px;
+  padding: 0 10px;
+  width: 300px;
+  height: 40px;
+  margin: 15px auto;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.507);
+}
+
+.modalLoginContent input:focus {
+  outline: none;
+}
+
+.modalLoginContent button {
+  margin: 5px auto;
+  width: 320px;
+  height: 40px;
+}
+
+@keyframes fadeIn {
+  from {
+    top: -300px;
+    opacity: 0;
+  }
+  to {
+    top: 0;
+    opacity: 1;
+  }
+}
+
+#modalCreate {
   display: none;
   position: fixed;
   z-index: 1;
@@ -530,7 +467,7 @@ textarea:focus {
   overflow: auto;
 }
 
-.modal-content {
+.modalCreateContent {
   background-color: #101011;
   text-align: center;
   margin: auto;

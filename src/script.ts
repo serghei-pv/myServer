@@ -1,11 +1,15 @@
 namespace nerdquiz {
-  //index.html
+  //global
+  let currentPage: string = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
+  let storageQuiz: string = <string>sessionStorage.getItem("quiz");
   let loginButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("loginButton");
   let loginVariable: string = "login";
+  loginButton.addEventListener("click", processLogin);
 
   //create.html
   let createQuizForm: HTMLFormElement = <HTMLFormElement>document.getElementById("createQuizForm");
-  let modal: HTMLElement = <HTMLElement>document.getElementById("modal");
+  let modalCreate: HTMLElement = <HTMLElement>document.getElementById("modalCreate");
+  let modalLogin: HTMLElement = <HTMLElement>document.getElementById("modalLogin");
   let modaltext: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("modaltext");
   let createQuestionsCounter: number = 1;
   let filledTextAreaArray: HTMLTextAreaElement[] = [];
@@ -25,15 +29,13 @@ namespace nerdquiz {
   let quizBottom: HTMLDivElement = <HTMLDivElement>document.getElementById("quizBottom");
   let questionCounter: number = 0;
 
-  //global
-  let currentPage: string = window.location.pathname.substring(window.location.pathname.lastIndexOf("/") + 1);
-  let storageQuiz: string = <string>sessionStorage.getItem("quiz");
   let ws = new WebSocket("wss://wb-s.herokuapp.com/");
   let host: string = "https://wb-s.herokuapp.com/";
   // let ws = new WebSocket("ws://localhost:8100/");
   // let host: string = "http://localhost:8100/";
 
   window.addEventListener("load", waitForWebsocket);
+  window.addEventListener("load", checkLogin);
   function waitForWebsocket() {
     setTimeout(function () {
       if (ws.readyState === 1) {
@@ -44,16 +46,14 @@ namespace nerdquiz {
     }, 5);
   }
 
+  function checkLogin(): void {
+    if (sessionStorage.getItem("login") != "true") {
+      modalLogin.style.display = "block";
+    }
+  }
+
   function pageCheck(): void {
     switch (currentPage) {
-      case "":
-        loginButton.addEventListener("click", processLogin);
-        break;
-
-      case "index.html":
-        loginButton.addEventListener("click", processLogin);
-        break;
-
       case "rooms.html":
         ws.send(
           JSON.stringify({
@@ -160,82 +160,73 @@ namespace nerdquiz {
       data = JSON.parse(data);
       for (let i: number = 0; i < data.length; i++) {
         if (sessionStorage.getItem("roomNumber") == data[i].roomnumber) {
-          let leftMain: HTMLUListElement = <HTMLUListElement>document.getElementById("leftMain");
-          let participantContainer: HTMLLIElement = <HTMLLIElement>document.createElement("LI");
-          let participantName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantPoints: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let answerContainer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantAnswerName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
-          let participantAnswer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          // let leftMain: HTMLUListElement = <HTMLUListElement>document.getElementById("leftMain");
+          let participantContainer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantName: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+          let participantPoints: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+          // let answerContainer: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          // let participantAnswerName: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let participantAnswer: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
           let participantSubPoint: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
           let participantAddPoint: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
           let participantSubHalfPoint: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
           let participantAddHalfPoint: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
           let participantUnlock: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
+          let rowOne: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let rowTwo: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
+          let rowThree: HTMLDivElement = <HTMLDivElement>document.createElement("DIV");
 
-          let subPoint: any = { type: "change", username: data[i].username, points: -1 };
-          let subHalfPoint: any = { type: "change", username: data[i].username, points: -0.5 };
-          let addHalfPoint: any = { type: "change", username: data[i].username, points: +0.5 };
-          let addPoint: any = { type: "change", username: data[i].username, points: +1 };
-          let unlockAnswer = { type: "change", username: data[i].username, lock: "false" };
-
-          if (i == leftMain.childNodes.length) {
+          if (i == quizBottom.childNodes.length) {
             participantContainer.id = "participantContainer" + i;
             participantName.id = "name" + i;
             participantPoints.id = "points" + i;
-            answerContainer.id = "answerContainer" + i;
-            participantAnswerName.id = "answerName" + i;
             participantAnswer.id = "answer" + i;
-            participantSubPoint.id = "subPoint" + i;
-            participantAddPoint.id = "addPoint" + i;
 
             participantContainer.className = "participantContainer";
+            rowOne.className = "rowOne";
+            rowTwo.className = "rowTwo";
+            rowThree.className = "rowThree";
             participantName.className = "participantName";
             participantPoints.className = "participantPoints";
-            answerContainer.className = "answerContainer";
-            participantAnswerName.className = "participantAnswerName";
             participantSubPoint.className = "participantSubPoint";
             participantSubHalfPoint.className = "participantSubHalfPoint";
+            participantUnlock.className = "participantUnlock";
             participantAddHalfPoint.className = "participantAddHalfPoint";
             participantAddPoint.className = "participantAddPoint";
             participantAnswer.className = "participantAnswer";
-            participantUnlock.className = "participantUnlock";
 
-            leftMain.appendChild(participantContainer);
-            participantContainer.appendChild(participantName);
-            participantContainer.appendChild(participantPoints);
-            answerContainer.appendChild(participantAnswerName);
-            answerContainer.appendChild(participantSubPoint);
-            answerContainer.appendChild(participantSubHalfPoint);
-            answerContainer.appendChild(participantAddHalfPoint);
-            answerContainer.appendChild(participantAddPoint);
-            answerContainer.appendChild(participantUnlock);
-            answerContainer.appendChild(participantAnswer);
+            quizBottom.appendChild(participantContainer);
+            participantContainer.appendChild(rowOne);
+            participantContainer.appendChild(rowTwo);
+            participantContainer.appendChild(rowThree);
+            rowOne.appendChild(participantName);
+            rowOne.appendChild(participantPoints);
+            rowTwo.appendChild(participantSubPoint);
+            rowTwo.appendChild(participantSubHalfPoint);
+            rowTwo.appendChild(participantUnlock);
+            rowTwo.appendChild(participantAddHalfPoint);
+            rowTwo.appendChild(participantAddPoint);
+            rowThree.appendChild(participantAnswer);
 
+            participantName.innerHTML = data[i].username;
             participantSubPoint.innerHTML = "-1";
             participantSubHalfPoint.innerHTML = "-0.5";
             participantAddHalfPoint.innerHTML = "+0.5";
             participantAddPoint.innerHTML = "+1";
             participantUnlock.innerHTML = "clear";
 
-            participantContainer.addEventListener("click", showParticipantAnswer);
             participantSubPoint.addEventListener("click", subPoints);
             participantSubHalfPoint.addEventListener("click", subHalfPoints);
             participantAddHalfPoint.addEventListener("click", addHalfPoints);
             participantAddPoint.addEventListener("click", addPoints);
             participantUnlock.addEventListener("click", unlock);
-
-            function showParticipantAnswer(): void {
-              if (quizBottom.childNodes.length != 0) {
-                let lastChildQuizBottom: ChildNode = <ChildNode>quizBottom.lastChild;
-                quizBottom.removeChild(lastChildQuizBottom);
-              }
-              quizBottom.appendChild(answerContainer);
-              participantAnswerName.innerHTML = data[i].username;
-              participantAnswer.innerHTML = data[i].answer;
-              ws.send(JSON.stringify({}));
-            }
           }
+
+          let subPoint: any = { type: "change", username: data[i].username, points: -1 };
+          let subHalfPoint: any = { type: "change", username: data[i].username, points: -0.5 };
+          let addHalfPoint: any = { type: "change", username: data[i].username, points: +0.5 };
+          let addPoint: any = { type: "change", username: data[i].username, points: +1 };
+          let unlockAnswer = { type: "change", username: data[i].username, lock: "false" };
 
           function subPoints(): void {
             ws.send(JSON.stringify(subPoint));
@@ -253,30 +244,17 @@ namespace nerdquiz {
             ws.send(JSON.stringify(unlockAnswer));
           }
 
-          let iName: HTMLDivElement = <HTMLDivElement>document.getElementById("name" + i);
+          let iParticipant: HTMLDivElement = <HTMLDivElement>document.getElementById("participantContainer" + i);
           let iPoints: HTMLDivElement = <HTMLDivElement>document.getElementById("points" + i);
-
-          if (iName.innerHTML != data[i].username || iPoints.innerHTML != data[i].points) {
-            iName.innerHTML = data[i].username;
-            iPoints.innerHTML = data[i].points;
-          }
-
-          if (data[i].answer != "") {
-            iName.classList.add("blue");
-          } else {
-            iName.classList.remove("blue");
-          }
-
-          let iAnswerName: HTMLDivElement = <HTMLDivElement>document.getElementById("answerName" + i);
           let iAnswer: HTMLDivElement = <HTMLDivElement>document.getElementById("answer" + i);
 
-          if (quizBottom.childNodes.length != 0) {
-            if (iAnswerName != null && iAnswer != null) {
-              if (iAnswerName.innerHTML != data[i].username || iAnswer.innerHTML != data[i].answer) {
-                iAnswerName.innerHTML = data[i].username;
-                iAnswer.innerHTML = data[i].answer;
-              }
-            }
+          iPoints.innerHTML = data[i].points;
+          iAnswer.innerHTML = data[i].answer;
+
+          if (data[i].answer != "") {
+            iParticipant.classList.add("blueBorder");
+          } else {
+            iParticipant.classList.remove("blueBorder");
           }
         } else {
           i--;
@@ -287,27 +265,13 @@ namespace nerdquiz {
   }
 
   function participateQuiz(): void {
-    let answerForm: HTMLFormElement = <HTMLFormElement>document.createElement("FORM");
-    let textArea: HTMLTextAreaElement = <HTMLTextAreaElement>document.createElement("TEXTAREA");
-    let submitButton: HTMLButtonElement = <HTMLButtonElement>document.createElement("BUTTON");
-    let pointsDisplay: HTMLParagraphElement = <HTMLParagraphElement>document.createElement("P");
+    let textArea: HTMLTextAreaElement = <HTMLTextAreaElement>document.getElementById("textArea");
+    let answerButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("answerButton");
+    let answerPoints: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("answerPoints");
     let points: number;
 
-    quizTop.appendChild(answerForm);
-    answerForm.appendChild(textArea);
-    answerForm.appendChild(submitButton);
-    quizBottom.appendChild(pointsDisplay);
-    answerForm.className = "answerForm";
-    textArea.className = "participantsTextarea";
-    submitButton.className = "submitButton";
-    submitButton.id = "answerButton";
-    textArea.name = "answer";
-    submitButton.innerHTML = "Answer";
-    submitButton.type = "button";
-    pointsDisplay.id = "answerPoints";
-
     textArea.addEventListener("input", autoExpand);
-    submitButton.addEventListener("click", processAnswer);
+    answerButton.addEventListener("click", processAnswer);
 
     function autoExpand(): void {
       let heightLimit: number = 60;
@@ -322,7 +286,7 @@ namespace nerdquiz {
         if (JSON.parse(data)[i].username == sessionStorage.getItem("username")) {
           if (points != JSON.parse(data)[i].points) {
             points = JSON.parse(data)[i].points;
-            pointsDisplay.innerHTML = points + " / " + sessionStorage.getItem("quizLength");
+            answerPoints.innerHTML = points + " / " + sessionStorage.getItem("quizLength");
           }
 
           if (JSON.parse(data)[i].lock == "true") {
@@ -383,9 +347,9 @@ namespace nerdquiz {
   }
 
   function displayQuestion(): void {
-    questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1);
+    questionNumberDisplay.innerHTML = JSON.stringify(questionCounter + 1) + " / " + JSON.parse(storageQuiz).question.length;
     questionDisplay.innerHTML = JSON.parse(storageQuiz).question[questionCounter];
-    answerDisplay.innerHTML = "Answer: " + JSON.parse(storageQuiz).answer[questionCounter];
+    answerDisplay.innerHTML = JSON.parse(storageQuiz).answer[questionCounter];
   }
 
   function previousQuestion(): void {
@@ -403,11 +367,21 @@ namespace nerdquiz {
     questionCounter++;
 
     if (JSON.parse(storageQuiz).question[questionCounter + 1] == undefined) {
-      nextQuestionButton.style.visibility = "hidden";
+      nextQuestionButton.innerHTML = "Finish";
+      nextQuestionButton.removeEventListener("click", nextQuestion);
+      nextQuestionButton.addEventListener("click", finishQuiz);
+    }
+
+    function finishQuiz(): void {
+      ws.send(
+        JSON.stringify({
+          type: "winner",
+          roomnumber: sessionStorage.getItem("roomNumber"),
+        })
+      );
     }
 
     previousQuestionButton.style.visibility = "visible";
-
     displayQuestion();
   }
 
@@ -425,7 +399,7 @@ namespace nerdquiz {
 
     if (filledTextAreaArray.length == filledTextArea) {
       processRequest(host, createQuizVariable);
-      modal.style.display = "block";
+      modalCreate.style.display = "block";
       modaltext.style.color = "#00FF50";
       modaltext.innerHTML = "Quiz created!";
       setTimeout(function () {
@@ -435,31 +409,31 @@ namespace nerdquiz {
 
       filledTextAreaArray.length = 0;
     } else {
-      modal.style.display = "block";
+      modalCreate.style.display = "block";
       modaltext.innerHTML = "Fill out everything!";
 
       setTimeout(function () {
-        modal.style.display = "none";
+        modalCreate.style.display = "none";
       }, 3000);
     }
   }
   function processSaveQuiz(): void {
-    modal.style.display = "block";
+    modalCreate.style.display = "block";
     modaltext.style.color = "#00FF50";
     modaltext.innerHTML = "Saved successfully!";
 
     setTimeout(function () {
       modaltext.style.color = "#FF1D19";
-      modal.style.display = "none";
+      modalCreate.style.display = "none";
     }, 3000);
     try {
       processRequest(host, saveQuizVariable);
     } catch (e) {
-      modal.style.display = "block";
+      modalCreate.style.display = "block";
       modaltext.innerHTML = "An error accured";
 
       setTimeout(function () {
-        modal.style.display = "none";
+        modalCreate.style.display = "none";
       }, 3000);
     }
   }
@@ -508,7 +482,6 @@ namespace nerdquiz {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             username: query.get("username"),
-            // password: query.get("password"),
           }),
         };
 
@@ -518,7 +491,7 @@ namespace nerdquiz {
         if (textData == query.get("username")) {
           sessionStorage.setItem("login", "true");
           sessionStorage.setItem("username", queryUsername);
-          window.location.href = "./pages/home.html";
+          modalLogin.style.display = "none";
         }
         break;
 

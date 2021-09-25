@@ -15,6 +15,7 @@ var nerdquiz;
         port = 8100;
     let userbase;
     let quiz;
+    let winner;
     let allQuizzes;
     let participantsArray = [];
     connectToDb();
@@ -32,11 +33,8 @@ var nerdquiz;
         });
     });
     app.post("/save", (req, res) => {
-        console.log("0");
         getQuiz(req.body.username).then(function (data) {
-            console.log("1");
             if (data != "noGet") {
-                console.log("2");
                 quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer } });
                 res.send("saved succesfully");
             }
@@ -70,6 +68,7 @@ var nerdquiz;
         await dbClient.connect();
         userbase = dbClient.db("nerdquiz").collection("user");
         quiz = dbClient.db("nerdquiz").collection("quizzes");
+        winner = dbClient.db("nerdquiz").collection("misc");
     }
     async function getUser(username) {
         try {
@@ -181,6 +180,25 @@ var nerdquiz;
                         participantsArray[key].lock = "false";
                         participantsArray[key].answer = "";
                     }
+                    break;
+                case "winner":
+                    let leader = {
+                        username: "",
+                        points: 0,
+                        answer: "",
+                        roomnumber: "",
+                        lock: "",
+                    };
+                    for (let key in participantsArray) {
+                        if (participantsArray[key].roomnumber == data.roomnumber) {
+                            if (participantsArray[key].points > leader.points) {
+                                leader = participantsArray[key];
+                            }
+                        }
+                    }
+                    winner.updateOne({ name: "winnerArray" }, { $push: { user: leader.username } });
+                    socket.send(JSON.stringify(leader));
+                    break;
             }
             wss.clients.forEach(async (socket) => {
                 socket.send(JSON.stringify(participantsArray));
