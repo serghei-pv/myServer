@@ -27,7 +27,8 @@ var nerdquiz;
     let wss = new Websocket.Server({ server });
     app.post("/login", (req, res) => {
         getUser(req.body.username).then(function (data) {
-            if (data != "noGet") {
+            console.log(data, req.body.username);
+            if (data == req.body.username) {
                 res.send(req.body.username);
             }
         });

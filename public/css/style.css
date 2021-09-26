@@ -1,14 +1,17 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
+
 * {
   margin: 0;
   padding: 0;
   color: white;
+  font-family: "Montserrat", sans-serif;
+  letter-spacing: 1px;
 }
 
 html {
   background: #171719;
   height: 100%;
   font-size: 20px;
-  font-family: Montserrat;
 }
 
 body {
@@ -251,7 +254,9 @@ textarea:focus {
 
 #questionNumberDisplay {
   order: 2;
+  text-align: center;
   font-size: 40px;
+  width: 150px;
   margin: 0 0 10px 0;
 }
 
@@ -401,7 +406,7 @@ textarea:focus {
 }
 
 .modalLogin {
-  background: #171719;
+  background-color: #171719ce;
   z-index: 2;
   display: none;
   position: fixed;
@@ -412,11 +417,13 @@ textarea:focus {
 }
 
 .modalLoginContent {
+  background-color: #101011;
+  margin: auto;
+  width: 500px;
   display: flex;
   flex-direction: column;
-  margin: 150px auto;
+  border-radius: 0 0 50px 50px;
   padding: 20px;
-  width: 350px;
 
   animation: fadeIn forwards 3s;
   -webkit-animation: fadeIn forwards 3s;

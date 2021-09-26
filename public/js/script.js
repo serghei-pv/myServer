@@ -45,7 +45,9 @@ var nerdquiz;
     }
     function checkLogin() {
         if (sessionStorage.getItem("login") != "true") {
+            let loginInput = document.querySelector(".loginInput");
             modalLogin.style.display = "block";
+            loginInput.focus();
         }
     }
     function pageCheck() {
@@ -292,7 +294,9 @@ var nerdquiz;
         createSlot.appendChild(questionArea);
         createSlot.appendChild(answerArea);
         window.scrollTo(0, document.body.scrollHeight);
-        questionArea.focus();
+        if (sessionStorage.getItem("login") == "true") {
+            questionArea.focus();
+        }
         createQuestionsCounter++;
     }
     function removeQuestion() {
@@ -416,6 +420,10 @@ var nerdquiz;
         switch (_pathname) {
             case loginVariable:
                 _url += loginVariable;
+                if (currentPage == "create.html") {
+                    formData = new FormData(document.forms[1]);
+                    query = new URLSearchParams(formData);
+                }
                 data = {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
