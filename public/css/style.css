@@ -134,6 +134,10 @@ textarea:focus {
   background-color: #101011;
 }
 
+#createMenu li {
+  padding: 0 10px;
+}
+
 .btn {
   font-family: Montserrat;
   width: 100px;
@@ -186,7 +190,7 @@ textarea:focus {
 }
 
 .quizTable th {
-  padding: 20px 15px 0 0;
+  padding: 20px;
 }
 
 .quizRow td {

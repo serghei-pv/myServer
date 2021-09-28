@@ -27,10 +27,10 @@ var nerdquiz;
     let quizTop = document.getElementById("quizTop");
     let quizBottom = document.getElementById("quizBottom");
     let questionCounter = 0;
-    let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-    let host = "https://wb-s.herokuapp.com/";
-    // let ws = new WebSocket("ws://localhost:8100/");
-    // let host: string = "http://localhost:8100/";
+    // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+    // let host: string = "https://wb-s.herokuapp.com/";
+    let ws = new WebSocket("ws://localhost:8100/");
+    let host = "http://localhost:8100/";
     window.addEventListener("load", waitForWebsocket);
     window.addEventListener("load", checkLogin);
     function waitForWebsocket() {

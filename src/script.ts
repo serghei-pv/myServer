@@ -13,8 +13,9 @@ namespace nerdquiz {
   let modaltext: HTMLParagraphElement = <HTMLParagraphElement>document.getElementById("modaltext");
   let createQuestionsCounter: number = 1;
   let filledTextAreaArray: HTMLTextAreaElement[] = [];
-  let createQuizVariable: string = "create";
   let saveQuizVariable: string = "save";
+  let createQuizVariable: string = "create";
+  let listVariable: string = "list";
   let loadQuizVariable: string = "load";
 
   //host.html
@@ -29,10 +30,10 @@ namespace nerdquiz {
   let quizBottom: HTMLDivElement = <HTMLDivElement>document.getElementById("quizBottom");
   let questionCounter: number = 0;
 
-  let ws = new WebSocket("wss://wb-s.herokuapp.com/");
-  let host: string = "https://wb-s.herokuapp.com/";
-  // let ws = new WebSocket("ws://localhost:8100/");
-  // let host: string = "http://localhost:8100/";
+  // let ws = new WebSocket("wss://wb-s.herokuapp.com/");
+  // let host: string = "https://wb-s.herokuapp.com/";
+  let ws = new WebSocket("ws://localhost:8100/");
+  let host: string = "http://localhost:8100/";
 
   window.addEventListener("load", waitForWebsocket);
   window.addEventListener("load", checkLogin);
@@ -56,61 +57,6 @@ namespace nerdquiz {
 
   function pageCheck(): void {
     switch (currentPage) {
-      case "rooms.html":
-        ws.send(
-          JSON.stringify({
-            type: "quizList",
-          })
-        );
-
-        ws.addEventListener("message", ({ data }) => {
-          data = JSON.parse(data);
-          for (let i: number = 0; i < data.length; i++) {
-            if (data[i].question != undefined) {
-              let quizList: HTMLUListElement = <HTMLUListElement>document.getElementById("quizList");
-              let quizRow: HTMLTableRowElement = <HTMLTableRowElement>document.createElement("TR");
-              let quizNumber: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
-              let quizID: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
-              let quizQuestionAmount: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
-              let quizSubmitter: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
-
-              quizRow.addEventListener("click", loadQuiz);
-              quizRow.className = "quizRow";
-              quizNumber.className = "quizNumber";
-              quizID.className = "quizID";
-              quizQuestionAmount.className = "quizQuestionAmount";
-              quizSubmitter.className = "quizSubmitter";
-
-              quizNumber.innerHTML = JSON.stringify(i + 1);
-              quizID.innerHTML = data[i]._id;
-              quizQuestionAmount.innerHTML = data[i].question.length;
-              quizSubmitter.innerHTML = data[i].username;
-
-              quizList.insertBefore(quizRow, quizList.childNodes[2]);
-              quizRow.appendChild(quizNumber);
-              quizRow.appendChild(quizID);
-              quizRow.appendChild(quizQuestionAmount);
-              quizRow.appendChild(quizSubmitter);
-
-              function loadQuiz(): void {
-                if (sessionStorage.getItem("username") == data[i].username) {
-                  sessionStorage.setItem("quiz", JSON.stringify(data[i]));
-                  window.location.href = "./host.html";
-                } else {
-                  sessionStorage.setItem("quizLength", data[i].question.length);
-                  window.location.href = "./participant.html";
-
-                  if (sessionStorage.getItem("quiz") != null) {
-                    sessionStorage.removeItem("quiz");
-                  }
-                }
-                sessionStorage.setItem("roomNumber", data[i]._id);
-              }
-            }
-          }
-        });
-        break;
-
       case "create.html":
         processLoadQuiz();
         let addQuestionButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("addQuestionButton");
@@ -538,6 +484,56 @@ namespace nerdquiz {
           }),
         };
         await fetch(_url, data);
+        break;
+
+      case listVariable:
+        _url += listVariable;
+        response = await fetch(_url);
+        let list = await response.json();
+
+        for (let i: number = 0; i < list.length; i++) {
+          if (list[i].question != undefined) {
+            let quizList: HTMLUListElement = <HTMLUListElement>document.getElementById("quizList");
+            let quizRow: HTMLTableRowElement = <HTMLTableRowElement>document.createElement("TR");
+            let quizNumber: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
+            let quizID: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
+            let quizQuestionAmount: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
+            let quizSubmitter: HTMLTableCellElement = <HTMLTableCellElement>document.createElement("TD");
+
+            quizRow.addEventListener("click", loadQuiz);
+            quizRow.className = "quizRow";
+            quizNumber.className = "quizNumber";
+            quizID.className = "quizID";
+            quizQuestionAmount.className = "quizQuestionAmount";
+            quizSubmitter.className = "quizSubmitter";
+
+            quizNumber.innerHTML = JSON.stringify(i + 1);
+            quizID.innerHTML = list[i]._id;
+            quizQuestionAmount.innerHTML = list[i].question.length;
+            quizSubmitter.innerHTML = list[i].username;
+
+            quizList.insertBefore(quizRow, quizList.childNodes[2]);
+            quizRow.appendChild(quizNumber);
+            quizRow.appendChild(quizID);
+            quizRow.appendChild(quizQuestionAmount);
+            quizRow.appendChild(quizSubmitter);
+
+            function loadQuiz(): void {
+              if (sessionStorage.getItem("username") == list[i].username) {
+                sessionStorage.setItem("quiz", JSON.stringify(list[i]));
+                window.location.href = "./host.html";
+              } else {
+                sessionStorage.setItem("quizLength", list[i].question.length);
+                window.location.href = "./participant.html";
+
+                if (sessionStorage.getItem("quiz") != null) {
+                  sessionStorage.removeItem("quiz");
+                }
+              }
+              sessionStorage.setItem("roomNumber", list[i]._id);
+            }
+          }
+        }
         break;
 
       case loadQuizVariable:
