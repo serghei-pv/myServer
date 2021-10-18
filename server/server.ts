@@ -5,7 +5,7 @@ import Cors from "cors";
 import { Server } from "socket.io";
 import { Quiz, Participant } from "./interface";
 
-const port: number = parseInt(process.env.PORT || "8100", 10);
+const port: number = Number(process.env.PORT || "8100");
 const dbURL: string = "mongodb+srv://userGIS:GISecure@clusterraster.u3qcg.mongodb.net";
 const dbClient: Mongo.MongoClient = new Mongo.MongoClient(dbURL);
 
