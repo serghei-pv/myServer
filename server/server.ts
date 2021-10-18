@@ -1,7 +1,7 @@
 import * as Mongo from "mongodb";
 import * as Http from "http";
-import Express from "express";
-import Cors from "cors";
+import * as Express from "express";
+import * as Cors from "cors";
 import { Server } from "socket.io";
 import { Quiz, Participant } from "./interface";
 
