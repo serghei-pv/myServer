@@ -84,24 +84,26 @@ io.on("connection", (socket) => {
         break;
 
       case "finish":
-        let leader: Participant = participantsArray[0];
-        let loser: Participant = participantsArray[0];
+        if (participantsArray.length > 0) {
+          let leader: Participant = participantsArray[0];
+          let loser: Participant = participantsArray[0];
 
-        for (let key in participantsArray) {
-          userbase.updateOne({ username: participantsArray[key].username }, { $set: { lastWin: false, lastLoss: false } });
-          if (participantsArray[key].roomnumber == data.roomnumber) {
-            if (participantsArray[key].points > leader.points) {
-              leader = participantsArray[key];
-            }
-            if (participantsArray[key].points < loser.points) {
-              loser = participantsArray[key];
+          for (let key in participantsArray) {
+            userbase.updateOne({ username: participantsArray[key].username }, { $set: { lastWin: false, lastLoss: false } });
+            if (participantsArray[key].roomnumber == data.roomnumber) {
+              if (participantsArray[key].points > leader.points) {
+                leader = participantsArray[key];
+              }
+              if (participantsArray[key].points < loser.points) {
+                loser = participantsArray[key];
+              }
             }
           }
-        }
 
-        userbase.updateOne({ username: leader.username }, { $set: { lastWin: true }, $inc: { wins: +1 } });
-        userbase.updateOne({ username: loser.username }, { $set: { lastLoss: true }, $inc: { losses: +1 } });
-        io.to(data.roomnumber).emit("finish");
+          userbase.updateOne({ username: leader.username }, { $set: { lastWin: true }, $inc: { wins: +1 } });
+          userbase.updateOne({ username: loser.username }, { $set: { lastLoss: true }, $inc: { losses: +1 } });
+          io.to(data.roomnumber).emit("finish");
+        }
         break;
     }
 

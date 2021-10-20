@@ -74,22 +74,24 @@ io.on("connection", (socket) => {
                 }
                 break;
             case "finish":
-                let leader = participantsArray[0];
-                let loser = participantsArray[0];
-                for (let key in participantsArray) {
-                    db_1.userbase.updateOne({ username: participantsArray[key].username }, { $set: { lastWin: false, lastLoss: false } });
-                    if (participantsArray[key].roomnumber == data.roomnumber) {
-                        if (participantsArray[key].points > leader.points) {
-                            leader = participantsArray[key];
-                        }
-                        if (participantsArray[key].points < loser.points) {
-                            loser = participantsArray[key];
+                if (participantsArray.length > 0) {
+                    let leader = participantsArray[0];
+                    let loser = participantsArray[0];
+                    for (let key in participantsArray) {
+                        db_1.userbase.updateOne({ username: participantsArray[key].username }, { $set: { lastWin: false, lastLoss: false } });
+                        if (participantsArray[key].roomnumber == data.roomnumber) {
+                            if (participantsArray[key].points > leader.points) {
+                                leader = participantsArray[key];
+                            }
+                            if (participantsArray[key].points < loser.points) {
+                                loser = participantsArray[key];
+                            }
                         }
                     }
+                    db_1.userbase.updateOne({ username: leader.username }, { $set: { lastWin: true }, $inc: { wins: +1 } });
+                    db_1.userbase.updateOne({ username: loser.username }, { $set: { lastLoss: true }, $inc: { losses: +1 } });
+                    io.to(data.roomnumber).emit("finish");
                 }
-                db_1.userbase.updateOne({ username: leader.username }, { $set: { lastWin: true }, $inc: { wins: +1 } });
-                db_1.userbase.updateOne({ username: loser.username }, { $set: { lastLoss: true }, $inc: { losses: +1 } });
-                io.to(data.roomnumber).emit("finish");
                 break;
         }
         let localParticipantsArray = [];
