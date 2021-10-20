@@ -1,14 +1,15 @@
 import * as Express from "express";
 import * as Cors from "cors";
-import { getUser, getUserAll, getQuiz, getQuizQA, getQuizAll, userbase, quiz } from "../database/db";
+import { getUser, getAllUser, getQuiz, getCreateQuiz, getAllQuizzes, userbase, quizzes } from "../database/db";
+import { User } from "../interface/interface";
 
 export const app = Express();
 app.use(Cors());
 app.use(Express.json());
 
 app.post("/register", (req, res) => {
-  getUser(req.body.username).then(function (data) {
-    if (data == "noGet") {
+  getUser(req.body.username).then(function (data: User) {
+    if (data.username != req.body.username) {
       userbase.insertOne({
         username: req.body.username,
         password: req.body.password,
@@ -25,9 +26,9 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  getUser(req.body.username).then(function (data) {
-    if (data[0] == req.body.username && data[1] == req.body.password) {
-      res.status(200).send(data[0]);
+  getUser(req.body.username).then(function (data: User) {
+    if (data.username == req.body.username && data.password == req.body.password) {
+      res.status(200).send(data.username);
     } else {
       res.status(401).send("");
     }
@@ -35,37 +36,37 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/user", (_req, res) => {
-  getUserAll().then(function (data) {
+  getAllUser().then(function (data) {
     res.status(200).send(data);
   });
 });
 
 app.post("/save", (req, res) => {
   getQuiz(req.body.username).then(function (data) {
-    if (data != "noGet") {
-      quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer } });
+    if (data != null && data.username == req.body.username) {
+      quizzes.updateOne({ _id: data._id }, { $set: { question: req.body.question, answer: req.body.answer } });
       res.status(200).send("Saved successfully");
     } else {
-      quiz.insertOne({ question: req.body.question, answer: req.body.answer, ready: "false", username: req.body.username });
+      quizzes.insertOne({ question: req.body.question, answer: req.body.answer, ready: "false", username: req.body.username });
     }
   });
 });
 
 app.post("/create", (req, res) => {
   getQuiz(req.body.username).then(function (data) {
-    if (data != "noGet") {
-      quiz.updateOne({ _id: data }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
+    if (data.username == req.body.username) {
+      quizzes.updateOne({ _id: data._id }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
       res.status(200).send("Quiz created successfully");
     } else {
-      quiz.insertOne({ question: req.body.question, answer: req.body.answer, ready: "true", username: req.body.username });
+      quizzes.insertOne({ question: req.body.question, answer: req.body.answer, ready: "true", username: req.body.username });
       res.status(200).send("Quiz created successfully");
     }
   });
 });
 
 app.post("/load", (_req, res) => {
-  getQuizQA().then(function (data) {
-    if (data != "noGet") {
+  getCreateQuiz().then(function (data) {
+    if (data.length > 0) {
       res.status(200).send(JSON.stringify(data));
     } else {
       res.status(200).send([]);
@@ -74,7 +75,7 @@ app.post("/load", (_req, res) => {
 });
 
 app.post("/list", (req, res) => {
-  getQuizAll().then(function (data) {
+  getAllQuizzes().then(function (data) {
     if (req.body.id == undefined) {
       res.status(200).send(JSON.stringify(data));
     } else {

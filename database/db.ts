@@ -1,74 +1,49 @@
 import * as Mongo from "mongodb";
-import { Quiz } from "../interface/interface";
+import { Quiz, User } from "../interface/interface";
 
 const url: string = "mongodb+srv://userGIS:GISecure@clusterraster.u3qcg.mongodb.net";
 const client: Mongo.MongoClient = new Mongo.MongoClient(url);
+export let userbase: Mongo.Collection;
+export let quizzes: Mongo.Collection;
 
 connectToDb();
 
 async function connectToDb() {
   await client.connect();
   userbase = client.db("nerdquiz").collection("user");
-  quiz = client.db("nerdquiz").collection("quizzes");
+  quizzes = client.db("nerdquiz").collection("quizzes");
 }
 
-export let userbase: Mongo.Collection;
-export let quiz: Mongo.Collection;
-let allQuizzes: Quiz[];
-
-export async function getUser(username: string) {
-  try {
-    let findUser: Mongo.Document = <Mongo.Document>await userbase.findOne({
-      username: username,
-    });
-    return [findUser.username, findUser.password];
-  } catch (e) {
-    return "noGet";
-  }
+export async function getUser(username: string): Promise<User> {
+  let user: User = <User>await userbase.findOne({
+    username: username,
+  });
+  return user;
 }
-export async function getUserAll() {
-  try {
-    let findUser: Mongo.Document = <Mongo.Document>userbase.find({});
-    let allUser: any[] = await findUser.toArray();
-    return allUser;
-  } catch (e) {
-    return "noGet";
-  }
+export async function getAllUser(): Promise<User[]> {
+  let userArray: User[] = <User[]>await userbase.find().toArray();
+  return userArray;
 }
-
-export async function getQuiz(username: string) {
-  try {
-    let findQuiz: Mongo.Document = <Mongo.Document>await quiz.findOne({
-      username: username,
+export async function getQuiz(username: string): Promise<Quiz> {
+  let quiz: Quiz = <Quiz>await quizzes.findOne({
+    username: username,
+    ready: "false",
+  });
+  return quiz;
+}
+export async function getCreateQuiz(): Promise<Quiz[]> {
+  let quizArray: Quiz[] = <Quiz[]>await quizzes
+    .find({
       ready: "false",
-    });
-    return findQuiz._id;
-  } catch (e) {
-    return "noGet";
-  }
+    })
+    .toArray();
+  return quizArray;
 }
-
-export async function getQuizQA() {
-  try {
-    let findQuiz: Mongo.Document = <Mongo.Document>quiz.find({
-      ready: "false",
-    });
-    let unfinishedQuiz: Quiz[] = await findQuiz.toArray();
-    return unfinishedQuiz;
-  } catch (e) {
-    return "noGet";
-  }
-}
-
-export async function getQuizAll() {
-  try {
-    let findQuiz: Mongo.Document = <Mongo.Document>quiz.find({
+export async function getAllQuizzes(): Promise<Quiz[]> {
+  let quizArray: Quiz[] = <Quiz[]>await quizzes
+    .find({
       ready: "true",
-    });
-    allQuizzes = await findQuiz.toArray();
-    return allQuizzes;
-  } catch (e) {
-    let noGet: Quiz[] = [];
-    return noGet;
-  }
+    })
+    .toArray();
+  return quizArray;
 }

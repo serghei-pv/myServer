@@ -1,0 +1,3 @@
+{
+  "watch": ["websocket/ws.js", "server/server.js"]
+}

@@ -6,7 +6,7 @@ import { userbase } from "../database/db";
 
 const port: number = Number(process.env.PORT || "8100");
 const server: Http.Server = Http.createServer(app);
-server.listen(port, () => console.log("Next server is up and running"));
+server.listen(port, () => console.log("My Server is up and running"));
 
 let participantsArray: Participant[] = [];
 

@@ -6,7 +6,7 @@ const server_1 = require("../server/server");
 const db_1 = require("../database/db");
 const port = Number(process.env.PORT || "8100");
 const server = Http.createServer(server_1.app);
-server.listen(port, () => console.log("Next server is up and running"));
+server.listen(port, () => console.log("My Server is up and running"));
 let participantsArray = [];
 const io = new socket_io_1.Server(server, {
     cors: {

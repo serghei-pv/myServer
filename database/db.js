@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getQuizAll = exports.getQuizQA = exports.getQuiz = exports.getUserAll = exports.getUser = exports.quiz = exports.userbase = void 0;
+exports.getAllQuizzes = exports.getCreateQuiz = exports.getQuiz = exports.getAllUser = exports.getUser = exports.quizzes = exports.userbase = void 0;
 const Mongo = require("mongodb");
 const url = "mongodb+srv://userGIS:GISecure@clusterraster.u3qcg.mongodb.net";
 const client = new Mongo.MongoClient(url);
@@ -8,70 +8,44 @@ connectToDb();
 async function connectToDb() {
     await client.connect();
     exports.userbase = client.db("nerdquiz").collection("user");
-    exports.quiz = client.db("nerdquiz").collection("quizzes");
+    exports.quizzes = client.db("nerdquiz").collection("quizzes");
 }
-let allQuizzes;
 async function getUser(username) {
-    try {
-        let findUser = await exports.userbase.findOne({
-            username: username,
-        });
-        return [findUser.username, findUser.password];
-    }
-    catch (e) {
-        return "noGet";
-    }
+    let user = await exports.userbase.findOne({
+        username: username,
+    });
+    return user;
 }
 exports.getUser = getUser;
-async function getUserAll() {
-    try {
-        let findUser = exports.userbase.find({});
-        let allUser = await findUser.toArray();
-        return allUser;
-    }
-    catch (e) {
-        return "noGet";
-    }
+async function getAllUser() {
+    let userArray = await exports.userbase.find().toArray();
+    return userArray;
 }
-exports.getUserAll = getUserAll;
+exports.getAllUser = getAllUser;
 async function getQuiz(username) {
-    try {
-        let findQuiz = await exports.quiz.findOne({
-            username: username,
-            ready: "false",
-        });
-        return findQuiz._id;
-    }
-    catch (e) {
-        return "noGet";
-    }
+    let quiz = await exports.quizzes.findOne({
+        username: username,
+        ready: "false",
+    });
+    return quiz;
 }
 exports.getQuiz = getQuiz;
-async function getQuizQA() {
-    try {
-        let findQuiz = exports.quiz.find({
-            ready: "false",
-        });
-        let unfinishedQuiz = await findQuiz.toArray();
-        return unfinishedQuiz;
-    }
-    catch (e) {
-        return "noGet";
-    }
+async function getCreateQuiz() {
+    let quizArray = await exports.quizzes
+        .find({
+        ready: "false",
+    })
+        .toArray();
+    return quizArray;
 }
-exports.getQuizQA = getQuizQA;
-async function getQuizAll() {
-    try {
-        let findQuiz = exports.quiz.find({
-            ready: "true",
-        });
-        allQuizzes = await findQuiz.toArray();
-        return allQuizzes;
-    }
-    catch (e) {
-        let noGet = [];
-        return noGet;
-    }
+exports.getCreateQuiz = getCreateQuiz;
+async function getAllQuizzes() {
+    let quizArray = await exports.quizzes
+        .find({
+        ready: "true",
+    })
+        .toArray();
+    return quizArray;
 }
-exports.getQuizAll = getQuizAll;
+exports.getAllQuizzes = getAllQuizzes;
 //# sourceMappingURL=db.js.map

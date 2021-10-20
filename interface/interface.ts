@@ -4,13 +4,17 @@ export interface User {
   _id: ObjectId;
   username: string;
   password: string;
+  wins: number;
+  losses: number;
+  lastWin: boolean;
+  lastLoss: boolean;
 }
 
 export interface Quiz {
   _id: ObjectId;
   question: string[];
   answer: string[];
-  user: string;
+  username: string;
   ready: string;
 }
 
