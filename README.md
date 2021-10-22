@@ -14,9 +14,8 @@ With the help of
 I created a backend, that helps the user communicate with the database and between clients.
 
 </section>
-<p>
+
 For more information, head over to my [nerdquiz.online repository ](https://github.com/serghei-pv/nerdquiz.online)
-</p>
 
 ## Author
 
