@@ -9,7 +9,7 @@ exports.app.use(Cors());
 exports.app.use(Express.json());
 exports.app.post("/register", (req, res) => {
     db_1.getUser(req.body.username).then(function (data) {
-        if (data != null && data.username != req.body.username) {
+        if (data == null) {
             db_1.userbase.insertOne({
                 username: req.body.username,
                 password: req.body.password,
@@ -64,7 +64,7 @@ exports.app.post("/create", (req, res) => {
 });
 exports.app.post("/load", (_req, res) => {
     db_1.getCreateQuiz().then(function (data) {
-        if (data != null && data.length > 0) {
+        if (data.length > 0) {
             res.status(200).send(JSON.stringify(data));
         }
         else {

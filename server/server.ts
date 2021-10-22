@@ -9,7 +9,7 @@ app.use(Express.json());
 
 app.post("/register", (req, res) => {
   getUser(req.body.username).then(function (data: User) {
-    if (data != null && data.username != req.body.username) {
+    if (data == null) {
       userbase.insertOne({
         username: req.body.username,
         password: req.body.password,
@@ -65,7 +65,7 @@ app.post("/create", (req, res) => {
 
 app.post("/load", (_req, res) => {
   getCreateQuiz().then(function (data) {
-    if (data != null && data.length > 0) {
+    if (data.length > 0) {
       res.status(200).send(JSON.stringify(data));
     } else {
       res.status(200).send([]);
