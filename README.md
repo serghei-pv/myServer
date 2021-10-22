@@ -11,11 +11,11 @@ With the help of
 </ul>
 
 I created a backend, that helps the user communicate with the database and between clients.
-For more information, head over to my [nerdquiz.online repository](https://github.com/serghei-pv/nerdquiz.online)
+For more information, head over to my [nerdquiz.online repository ](https://github.com/serghei-pv/nerdquiz.online)
 
 ## Author
 
 👤 ** Serghei **
 
-- Website: serghei-pv.me
+- Website: [serghei-pv.me ](https://serghei-pv.me)
 - Github: [@serghei-pv ](https://github.com/serghei-pv)
