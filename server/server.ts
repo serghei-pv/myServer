@@ -9,7 +9,7 @@ app.use(Express.json());
 
 app.post("/register", (req, res) => {
   getUser(req.body.username).then(function (data: User) {
-    if (data.username != req.body.username) {
+    if (data != null && data.username != req.body.username) {
       userbase.insertOne({
         username: req.body.username,
         password: req.body.password,
@@ -27,7 +27,7 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   getUser(req.body.username).then(function (data: User) {
-    if (data.username == req.body.username && data.password == req.body.password) {
+    if (data != null && data.username == req.body.username && data.password == req.body.password) {
       res.status(200).send(data.username);
     } else {
       res.status(401).send();
@@ -54,7 +54,7 @@ app.post("/save", (req, res) => {
 
 app.post("/create", (req, res) => {
   getQuiz(req.body.username).then(function (data) {
-    if (data.username == req.body.username) {
+    if (data != null && data.username == req.body.username) {
       quizzes.updateOne({ _id: data._id }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
     } else {
       quizzes.insertOne({ question: req.body.question, answer: req.body.answer, ready: "true", username: req.body.username });
@@ -65,7 +65,7 @@ app.post("/create", (req, res) => {
 
 app.post("/load", (_req, res) => {
   getCreateQuiz().then(function (data) {
-    if (data.length > 0) {
+    if (data != null && data.length > 0) {
       res.status(200).send(JSON.stringify(data));
     } else {
       res.status(200).send([]);
