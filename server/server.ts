@@ -20,7 +20,7 @@ app.post("/register", (req, res) => {
       });
       res.status(200).send(req.body.username);
     } else {
-      res.status(401).send("");
+      res.status(401).send();
     }
   });
 });
@@ -30,7 +30,7 @@ app.post("/login", (req, res) => {
     if (data.username == req.body.username && data.password == req.body.password) {
       res.status(200).send(data.username);
     } else {
-      res.status(401).send("");
+      res.status(401).send();
     }
   });
 });
@@ -45,10 +45,10 @@ app.post("/save", (req, res) => {
   getQuiz(req.body.username).then(function (data) {
     if (data != null && data.username == req.body.username) {
       quizzes.updateOne({ _id: data._id }, { $set: { question: req.body.question, answer: req.body.answer } });
-      res.status(200).send("Saved successfully");
     } else {
       quizzes.insertOne({ question: req.body.question, answer: req.body.answer, ready: "false", username: req.body.username });
     }
+    res.status(200).send("Saved successfully");
   });
 });
 
@@ -56,11 +56,10 @@ app.post("/create", (req, res) => {
   getQuiz(req.body.username).then(function (data) {
     if (data.username == req.body.username) {
       quizzes.updateOne({ _id: data._id }, { $set: { question: req.body.question, answer: req.body.answer, ready: "true" } });
-      res.status(200).send("Quiz created successfully");
     } else {
       quizzes.insertOne({ question: req.body.question, answer: req.body.answer, ready: "true", username: req.body.username });
-      res.status(200).send("Quiz created successfully");
     }
+    res.status(200).send("Quiz created successfully");
   });
 });
 
