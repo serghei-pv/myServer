@@ -3,16 +3,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.app = void 0;
 const Express = require("express");
 const Cors = require("cors");
+const crypto_1 = require("crypto");
 const db_1 = require("../database/db");
 exports.app = Express();
 exports.app.use(Cors());
 exports.app.use(Express.json());
 exports.app.post("/register", (req, res) => {
     db_1.getUser(req.body.username).then(function (data) {
+        const salt = crypto_1.randomBytes(16).toString("hex");
+        let hashedPassword = crypto_1.scryptSync(req.body.password, salt, 64).toString("hex");
+        hashedPassword = `${salt}:${hashedPassword}`;
         if (data == null) {
             db_1.userbase.insertOne({
                 username: req.body.username,
-                password: req.body.password,
+                password: hashedPassword,
                 wins: 0,
                 losses: 0,
                 lastWin: false,
@@ -27,7 +31,11 @@ exports.app.post("/register", (req, res) => {
 });
 exports.app.post("/login", (req, res) => {
     db_1.getUser(req.body.username).then(function (data) {
-        if (data != null && data.username == req.body.username && data.password == req.body.password) {
+        const [salt, key] = data.password.split(":");
+        const hashedBuffer = crypto_1.scryptSync(req.body.password, salt, 64);
+        const keyBuffer = Buffer.from(key, "hex");
+        const match = crypto_1.timingSafeEqual(hashedBuffer, keyBuffer);
+        if (data != null && data.username == req.body.username && match) {
             res.status(200).send(data.username);
         }
         else {

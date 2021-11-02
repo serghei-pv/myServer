@@ -1,5 +1,6 @@
 import * as Express from "express";
 import * as Cors from "cors";
+import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
 import { getUser, getAllUser, getQuiz, getCreateQuiz, getAllQuizzes, userbase, quizzes } from "../database/db";
 import { User } from "../interface/interface";
 
@@ -9,10 +10,14 @@ app.use(Express.json());
 
 app.post("/register", (req, res) => {
   getUser(req.body.username).then(function (data: User) {
+    const salt: string = randomBytes(16).toString("hex");
+    let hashedPassword: string = scryptSync(req.body.password, salt, 64).toString("hex");
+    hashedPassword = `${salt}:${hashedPassword}`;
+
     if (data == null) {
       userbase.insertOne({
         username: req.body.username,
-        password: req.body.password,
+        password: hashedPassword,
         wins: 0,
         losses: 0,
         lastWin: false,
@@ -24,23 +29,26 @@ app.post("/register", (req, res) => {
     }
   });
 });
-
 app.post("/login", (req, res) => {
   getUser(req.body.username).then(function (data: User) {
-    if (data != null && data.username == req.body.username && data.password == req.body.password) {
+    const [salt, key] = data.password.split(":");
+    const hashedBuffer: Buffer = scryptSync(req.body.password, salt, 64);
+
+    const keyBuffer = Buffer.from(key, "hex");
+    const match = timingSafeEqual(hashedBuffer, keyBuffer);
+
+    if (data != null && data.username == req.body.username && match) {
       res.status(200).send(data.username);
     } else {
       res.status(401).send();
     }
   });
 });
-
 app.post("/user", (_req, res) => {
   getAllUser().then(function (data) {
     res.status(200).send(data);
   });
 });
-
 app.post("/save", (req, res) => {
   getQuiz(req.body.username).then(function (data) {
     if (data != null && data.username == req.body.username) {
@@ -51,7 +59,6 @@ app.post("/save", (req, res) => {
     res.status(200).send("Saved successfully");
   });
 });
-
 app.post("/create", (req, res) => {
   getQuiz(req.body.username).then(function (data) {
     if (data != null && data.username == req.body.username) {
@@ -62,7 +69,6 @@ app.post("/create", (req, res) => {
     res.status(200).send("Quiz created successfully");
   });
 });
-
 app.post("/load", (_req, res) => {
   getCreateQuiz().then(function (data) {
     if (data.length > 0) {
@@ -72,7 +78,6 @@ app.post("/load", (_req, res) => {
     }
   });
 });
-
 app.post("/list", (req, res) => {
   getAllQuizzes().then(function (data) {
     if (req.body.id == undefined) {
